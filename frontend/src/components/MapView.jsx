@@ -141,6 +141,7 @@ export default function MapView() {
                             body: JSON.stringify({
                               storeNumber: loc.storeNumber,
                               userId: userId,
+                              visitDate: new Date().toISOString(), // ✅ Add this line
                             }),
                           })
                             .then((res) => res.json())

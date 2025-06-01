@@ -22,7 +22,8 @@ router.get("/visits/:userId", (req, res) => {
 
 // --- POST a new visit ---
 router.post("/visits", express.json(), (req, res) => {
-  const { userId, storeNumber, visitDate } = req.body;
+  const { userId, storeNumber } = req.body;
+  const visitDate = req.body.visitDate || new Date().toISOString();
   const stmt = db.prepare(
     "INSERT INTO visits (userId, storeNumber, visitDate) VALUES (?, ?, ?)"
   );
@@ -43,7 +44,9 @@ router.post("/register", express.json(), (req, res) => {
   }
 
   const result = db
-    .prepare("INSERT INTO users (username, password, nickname) VALUES (?, ?, ?)")
+    .prepare(
+      "INSERT INTO users (username, password, nickname) VALUES (?, ?, ?)"
+    )
     .run(username, password, nickname);
 
   res.json({ id: result.lastInsertRowid, nickname });
@@ -54,7 +57,9 @@ router.post("/login", express.json(), (req, res) => {
   const { username, password } = req.body;
 
   const user = db
-    .prepare("SELECT id, nickname FROM users WHERE username = ? AND password = ?")
+    .prepare(
+      "SELECT id, nickname FROM users WHERE username = ? AND password = ?"
+    )
     .get(username, password);
 
   if (!user) {
@@ -63,6 +68,5 @@ router.post("/login", express.json(), (req, res) => {
 
   res.json(user);
 });
-
 
 module.exports = router;
