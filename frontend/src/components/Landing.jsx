@@ -1,9 +1,7 @@
 import { useEffect, useState } from "react";
 const API_BASE = `${window.location.origin}/api`;
 
-
-
-export default function Landing({ user, onEnterMap }) {
+export default function Landing({ user, onEnterMap, onEnterFriends }) {
   const [stats, setStats] = useState({ total: 0, visited: 0, percent: 0 });
 
   useEffect(() => {
@@ -40,12 +38,8 @@ export default function Landing({ user, onEnterMap }) {
         >
           Welcome, {user.nickname} 👋
         </h1>
-        <p
-          className="text-sm mb-4"
-          style={{ color: "var(--brand-accent)" }}
-        >
-          You’ve visited{" "}
-          <strong>{stats.visited}</strong> of{" "}
+        <p className="text-sm mb-4" style={{ color: "var(--brand-accent)" }}>
+          You’ve visited <strong>{stats.visited}</strong> of{" "}
           <strong>{stats.total}</strong> Kwik Trip stores (
           <strong>{stats.percent}%</strong>)
         </p>
@@ -55,10 +49,9 @@ export default function Landing({ user, onEnterMap }) {
             🗺️ Go to Map
           </button>
           <button className="btn">📋 Visit History</button>
-          <button className="btn w-full" onClick={() => window.location.href = "/friends"}>
-  👥 Friends Dashboard
-</button>
-
+          <button className="btn w-full" onClick={onEnterFriends}>
+            👥 Friends Dashboard
+          </button>
         </div>
 
         <button

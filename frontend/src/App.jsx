@@ -4,17 +4,15 @@ import Login from "./components/Login";
 import Register from "./components/Register";
 import Landing from "./components/Landing";
 import VisitHistory from "./components/VisitHistory";
-import './styles/theme.css';
+import "./styles/theme.css";
 import FriendDashboard from "./components/FriendDashboard";
-
-
-
 
 function App() {
   const [user, setUser] = useState(null);
   const [registering, setRegistering] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [atMap, setAtMap] = useState(false);
+  const [atFriends, setAtFriends] = useState(false);
 
   useEffect(() => {
     const id = localStorage.getItem("userId");
@@ -26,12 +24,34 @@ function App() {
     return registering ? (
       <Register onRegister={(u) => setUser(u)} />
     ) : (
-      <Login onLogin={(u) => setUser(u)} switchToRegister={() => setRegistering(true)} />
+      <Login
+        onLogin={(u) => setUser(u)}
+        switchToRegister={() => setRegistering(true)}
+      />
     );
   }
 
-  if (!atMap) {
-    return <Landing user={user} onEnterMap={() => setAtMap(true)} />;
+  if (!atMap && !atFriends) {
+    return (
+      <Landing
+        user={user}
+        onEnterMap={() => setAtMap(true)}
+        onEnterFriends={() => setAtFriends(true)}
+      />
+    );
+  }
+
+  if (atFriends) {
+    return (
+      <FriendDashboard
+        onSelectUser={(userId) => {
+          localStorage.setItem("selectedUserId", userId);
+          localStorage.setItem("mode", "friend");
+          setAtMap(true);
+          setAtFriends(false);
+        }}
+      />
+    );
   }
 
   return (
