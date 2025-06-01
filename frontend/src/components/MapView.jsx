@@ -135,7 +135,7 @@ export default function MapView() {
                             return;
                           }
 
-                          fetch(`${API_BASE}/visit`, {
+                          fetch(`${API_BASE}/visits`, {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
                             body: JSON.stringify({
