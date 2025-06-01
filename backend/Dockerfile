@@ -1,23 +1,13 @@
-# Use Node.js 18
 FROM node:18
 
-# Set working directory
 WORKDIR /app
 
-# Copy dependency definitions
 COPY package*.json ./
-
-# Install dependencies
 RUN npm install
 
-# Copy app source
 COPY . .
 
-# Run the DB seed script during build
-RUN node seed.js
-
-# Expose backend API port
 EXPOSE 3001
 
-# Default run command
-CMD ["node", "index.js"]
+# Run seed.js before starting the server
+CMD ["sh", "-c", "node seed.js && node index.js"]
