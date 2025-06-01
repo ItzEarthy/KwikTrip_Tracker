@@ -9,7 +9,11 @@ export default function FriendsDashboard({ onSelectUser }) {
   useEffect(() => {
     fetch(`${API_BASE}/users`)
       .then((res) => res.json())
-      .then(setUsers);
+      .then((allUsers) => {
+        const selfId = localStorage.getItem("userId");
+        const filteredUsers = allUsers.filter((u) => u.id !== selfId);
+        setUsers(filteredUsers);
+      });
 
     fetch(`${API_BASE}/locations`)
       .then((res) => res.json())
@@ -27,7 +31,7 @@ export default function FriendsDashboard({ onSelectUser }) {
   }, [users]);
 
   return (
-    <div className="p-4 max-w-3xl mx-auto">
+    <div className="p-4 max-w-md mx-auto">
       <h1 className="text-xl font-bold mb-4 text-center">Friends Dashboard</h1>
       <div className="space-y-4">
         {users.length === 0 ? (
