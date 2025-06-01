@@ -13,6 +13,9 @@ RUN npm install
 # Copy app source
 COPY . .
 
+# Run the DB seed script during build
+RUN node seed.js
+
 # Expose backend API port
 EXPOSE 3001
 
