@@ -5,7 +5,8 @@ import L from "leaflet";
 import Filters from "./Filters";
 import FriendsList from "./FriendsList";
 import MapFixer from "./MapFixer";
-const API_BASE = import.meta.env.VITE_API_URL || "/api";
+const API_BASE = `${window.location.origin}/api`;
+
 
 
 // Custom hook to fix map size

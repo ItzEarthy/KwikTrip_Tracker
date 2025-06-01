@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-const API_BASE = import.meta.env.VITE_API_URL || "/api";
+const API_BASE = `${window.location.origin}/api`;
+
 
 
 export default function Landing({ user, onEnterMap }) {

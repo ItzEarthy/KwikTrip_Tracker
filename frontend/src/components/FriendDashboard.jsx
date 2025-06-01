@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import Layout from "./Layout";
 import { useNavigate } from "react-router-dom";
-const API_BASE = import.meta.env.VITE_API_URL || "/api";
+const API_BASE = `${window.location.origin}/api`;
+
 
 
 export default function FriendDashboard() {

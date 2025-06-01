@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Layout from "./Layout";
-const API_BASE = import.meta.env.VITE_API_URL || "/api";
+const API_BASE = `${window.location.origin}/api`;
+
 
 
 
