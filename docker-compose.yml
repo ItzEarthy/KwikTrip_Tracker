@@ -5,8 +5,8 @@ services:
       context: ./backend
     ports:
       - "3001:3001"
-    volumes:
-      - ./backend:/app
+    #volumes:
+    #  - ./backend:/app
     restart: unless-stopped
 
   frontend:
