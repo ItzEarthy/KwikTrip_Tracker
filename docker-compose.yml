@@ -6,7 +6,7 @@ services:
     ports:
       - "3001:3001"
     volumes:
-      - ./backend/data.db:/app/data.db  # ✅ Mount single file persistently
+      - ./backend:/app
 
 
   frontend:
