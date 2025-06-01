@@ -5,9 +5,8 @@ import L from "leaflet";
 import Filters from "./Filters";
 import FriendsList from "./FriendsList";
 import MapFixer from "./MapFixer";
-const API_BASE = import.meta.env.VITE_API_URL || "http://192.168.86.33:3001/api";
-
-
+const API_BASE =
+  import.meta.env.VITE_API_URL || "http://192.168.86.33:3001/api";
 
 // Custom hook to fix map size
 function ResizeMap() {
@@ -43,7 +42,11 @@ const friendVisitedIcon = new L.Icon({
 
 export default function MapView() {
   const mode = localStorage.getItem("mode") || "self";
-  const [filter, setFilter] = useState({ status: "all", state: "all", city: "all" });
+  const [filter, setFilter] = useState({
+    status: "all",
+    state: "all",
+    city: "all",
+  });
   const [locations, setLocations] = useState([]);
   const [visits, setVisits] = useState([]);
   const [selectedUserId, setSelectedUserId] = useState(
@@ -66,13 +69,17 @@ export default function MapView() {
   const isVisited = (storeNumber) =>
     visits.some((v) => v.storeNumber === storeNumber);
 
-  const isFriend = mode === "friend" && selectedUserId !== localStorage.getItem("userId");
+  const isFriend =
+    mode === "friend" && selectedUserId !== localStorage.getItem("userId");
 
   return (
     <div className="h-screen w-screen flex flex-col overflow-hidden">
       <div className="flex-none z-10 p-2 space-y-2">
         {mode === "friend" && (
-          <FriendsList selectedUserId={selectedUserId} onSelect={setSelectedUserId} />
+          <FriendsList
+            selectedUserId={selectedUserId}
+            onSelect={setSelectedUserId}
+          />
         )}
         <Filters locations={locations} visits={visits} onFilter={setFilter} />
       </div>
@@ -94,8 +101,10 @@ export default function MapView() {
 
               if (filter.status === "visited" && !visited) return false;
               if (filter.status === "unvisited" && visited) return false;
-              if (filter.state !== "all" && loc.state !== filter.state) return false;
-              if (filter.city !== "all" && loc.city !== filter.city) return false;
+              if (filter.state !== "all" && loc.state !== filter.state)
+                return false;
+              if (filter.city !== "all" && loc.city !== filter.city)
+                return false;
 
               return true;
             })
@@ -103,9 +112,7 @@ export default function MapView() {
               <Marker
                 key={loc.storeNumber}
                 position={[loc.latitude, loc.longitude]}
-                icon={isVisited(loc.storeNumber)
-                  ? isFriend ? friendVisitedIcon : visitedIcon
-                  : unvisitedIcon}
+                icon={isVisited(loc.storeNumber) ? visitedIcon : unvisitedIcon}
               >
                 <Popup>
                   <div className="space-y-2">
