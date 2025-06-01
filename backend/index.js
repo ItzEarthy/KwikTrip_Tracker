@@ -9,5 +9,5 @@ app.use(cors());
 app.use('/api', routes);
 
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 Server running at http://0.0.0.0:${PORT}/api`);
+  console.log('🚀 API listening on port 3001');
 });

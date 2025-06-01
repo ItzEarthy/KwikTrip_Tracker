@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-const API_BASE = import.meta.env.VITE_API_URL || "http://192.168.86.33:3001/api/";
+const API_BASE = import.meta.env.VITE_API_URL || "/api";
+
 
 export default function FriendsList({ selectedUserId, onSelect }) {
   const [users, setUsers] = useState([]);

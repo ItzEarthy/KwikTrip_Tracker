@@ -11,6 +11,8 @@ FROM nginx:alpine
 # Copy frontend files to nginx
 COPY --from=builder /app/dist /usr/share/nginx/html
 
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
 # ✅ Fix permissions (root already owns these)
 RUN chmod -R 755 /usr/share/nginx/html
 

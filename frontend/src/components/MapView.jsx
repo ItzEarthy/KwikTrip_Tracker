@@ -5,8 +5,8 @@ import L from "leaflet";
 import Filters from "./Filters";
 import FriendsList from "./FriendsList";
 import MapFixer from "./MapFixer";
-const API_BASE =
-  import.meta.env.VITE_API_URL || "http://192.168.86.33:3001/api";
+const API_BASE = import.meta.env.VITE_API_URL || "/api";
+
 
 // Custom hook to fix map size
 function ResizeMap() {
