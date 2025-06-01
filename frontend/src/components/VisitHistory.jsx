@@ -8,8 +8,9 @@ export default function VisitHistory({ open, onClose }) {
   useEffect(() => {
     if (open) {
       const userId = localStorage.getItem("userId");
+      console.log("🔍 VisitHistory fetching for userId:", userId);
       if (!userId) return;
-
+      
       fetch(`${API_BASE}/visits/${userId}`)
         .then((res) => res.json())
         .then(setVisits)
