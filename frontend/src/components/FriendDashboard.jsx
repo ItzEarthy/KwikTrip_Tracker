@@ -10,7 +10,7 @@ export default function FriendsDashboard({ onSelectUser }) {
     fetch(`${API_BASE}/users`)
       .then((res) => res.json())
       .then((allUsers) => {
-        const selfId = localStorage.getItem("userId");
+        const selfId = Number(localStorage.getItem("userId"));
         const filteredUsers = allUsers.filter((u) => u.id !== selfId);
         setUsers(filteredUsers);
       });
