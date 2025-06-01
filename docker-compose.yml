@@ -1,20 +1,18 @@
-
 services:
   backend:
+    container_name: kwiktrip-backend
     build:
       context: ./backend
     ports:
       - "3001:3001"
     volumes:
       - ./backend/data.db:/app/data.db
-
+    restart: unless-stopped
 
   frontend:
+    container_name: kwiktrip-frontend
     build:
       context: ./frontend
     ports:
       - "5173:80"
-
-
-volumes:
-  sqlite-data:
+    restart: unless-stopped
