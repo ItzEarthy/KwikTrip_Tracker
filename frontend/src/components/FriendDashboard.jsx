@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-const API_BASE = `${window.location.origin}/api`;
+const API_BASE = import.meta.env.VITE_API_URL || "/api";
 
 export default function FriendsDashboard({ onSelectUser }) {
   const [users, setUsers] = useState([]);
@@ -28,37 +28,21 @@ export default function FriendsDashboard({ onSelectUser }) {
 
   return (
     <div className="p-4 max-w-3xl mx-auto">
-      <h1 className="text-2xl font-bold mb-4">Friends Dashboard</h1>
-      <table className="w-full border border-gray-300 rounded-lg overflow-hidden">
-        <thead className="bg-gray-100 text-left">
-          <tr>
-            <th className="p-3">Name</th>
-            <th className="p-3">Progress</th>
-            <th className="p-3 text-center">View</th>
-          </tr>
-        </thead>
-        <tbody>
-          {users.map((user) => {
+      <h1 className="text-xl font-bold mb-4 text-center">Friends Dashboard</h1>
+      <div className="space-y-4">
+        {users.length === 0 ? (
+          <p className="text-center text-gray-500">No friends found.</p>
+        ) : (
+          users.map((user) => {
             const progress = visits[user.id] || 0;
             const total = locations.length || 1;
             const percent = Math.round((progress / total) * 100);
             return (
-              <tr key={user.id} className="border-t">
-                <td className="p-3 font-medium">{user.nickname}</td>
-                <td className="p-3">
-                  <div className="w-full bg-gray-200 h-4 rounded">
-                    <div
-                      className="bg-blue-600 h-4 rounded"
-                      style={{ width: `${percent}%` }}
-                    ></div>
-                  </div>
-                  <span className="text-xs text-gray-600">
-                    {progress} of {total} visited ({percent}%)
-                  </span>
-                </td>
-                <td className="p-3 text-center">
+              <div key={user.id} className="bg-white rounded-lg shadow p-4">
+                <div className="flex justify-between items-center mb-2">
+                  <h2 className="font-semibold text-base">{user.nickname}</h2>
                   <button
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded"
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm"
                     onClick={() => {
                       localStorage.setItem("mode", "friend");
                       localStorage.setItem("selectedUserId", user.id);
@@ -67,12 +51,21 @@ export default function FriendsDashboard({ onSelectUser }) {
                   >
                     View
                   </button>
-                </td>
-              </tr>
+                </div>
+                <div className="w-full bg-gray-200 h-3 rounded">
+                  <div
+                    className="bg-blue-600 h-3 rounded"
+                    style={{ width: `${percent}%` }}
+                  ></div>
+                </div>
+                <div className="text-xs text-gray-600 mt-1">
+                  {progress} of {total} visited ({percent}%)
+                </div>
+              </div>
             );
-          })}
-        </tbody>
-      </table>
+          })
+        )}
+      </div>
     </div>
   );
 }
