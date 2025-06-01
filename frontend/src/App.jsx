@@ -4,15 +4,13 @@ import Login from "./components/Login";
 import Register from "./components/Register";
 import Landing from "./components/Landing";
 import VisitHistory from "./components/VisitHistory";
-import "./styles/theme.css";
 import FriendDashboard from "./components/FriendDashboard";
 
 function App() {
   const [user, setUser] = useState(null);
   const [registering, setRegistering] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
-  const [atMap, setAtMap] = useState(false);
-  const [atFriends, setAtFriends] = useState(false);
+  const [viewingMapForUserId, setViewingMapForUserId] = useState(null); // New
 
   useEffect(() => {
     const id = localStorage.getItem("userId");
@@ -20,60 +18,75 @@ function App() {
     if (id && nickname) setUser({ id, nickname });
   }, []);
 
+  const logout = () => {
+    localStorage.clear();
+    setUser(null);
+    setViewingMapForUserId(null);
+  };
+
   if (!user) {
     return registering ? (
-      <Register onRegister={(u) => setUser(u)} />
+      <Register onRegister={setUser} />
     ) : (
-      <Login
-        onLogin={(u) => setUser(u)}
-        switchToRegister={() => setRegistering(true)}
-      />
+      <Login onLogin={setUser} switchToRegister={() => setRegistering(true)} />
     );
   }
 
-  if (!atMap && !atFriends) {
-    return (
-      <Landing
-        user={user}
-        onEnterMap={() => setAtMap(true)}
-        onEnterFriends={() => setAtFriends(true)}
-      />
-    );
-  }
-
-  if (atFriends) {
+  if (viewingMapForUserId === "friends") {
     return (
       <FriendDashboard
-        onSelectUser={(userId) => {
-          localStorage.setItem("selectedUserId", userId);
-          localStorage.setItem("mode", "friend");
-          setAtMap(true);
-          setAtFriends(false);
-        }}
+        onSelectUser={(friendId) => setViewingMapForUserId(friendId)}
       />
     );
   }
 
+  // 👤 Show friend's map view
+  if (viewingMapForUserId && viewingMapForUserId !== user.id) {
+    localStorage.setItem("mode", "friend");
+    localStorage.setItem("selectedUserId", viewingMapForUserId);
+    return (
+      <div className="h-screen w-screen flex flex-col overflow-hidden">
+        <MapView />
+        <button onClick={logout} className="fixed top-4 right-4 btn">
+          Log out
+        </button>
+      </div>
+    );
+  }
+
+  // 🧭 Show personal map view
+  if (viewingMapForUserId === user.id) {
+    localStorage.setItem("mode", "self");
+    localStorage.setItem("selectedUserId", user.id);
+    return (
+      <div className="h-screen w-screen flex flex-col overflow-hidden">
+        <MapView />
+        <button
+          className="fixed bottom-4 right-4 btn"
+          onClick={() => setShowHistory(true)}
+        >
+          📋 History
+        </button>
+        <button onClick={logout} className="fixed top-4 right-4 btn">
+          Log out
+        </button>
+        <VisitHistory
+          open={showHistory}
+          onClose={() => setShowHistory(false)}
+        />
+      </div>
+    );
+  }
+
+  // 🏠 Show landing dashboard
   return (
-    <div className="h-screen w-screen flex flex-col overflow-hidden">
-      <MapView />
-      <button
-        className="fixed bottom-4 right-4 bg-blue-600 text-white px-4 py-2 rounded-full shadow-md z-50"
-        onClick={() => setShowHistory(true)}
-      >
-        📋 History
-      </button>
-      <button
-        className="fixed top-4 right-4 bg-gray-300 text-black px-4 py-1 rounded-full z-50 text-sm"
-        onClick={() => {
-          localStorage.clear();
-          window.location.reload();
-        }}
-      >
-        Log out
-      </button>
-      <VisitHistory open={showHistory} onClose={() => setShowHistory(false)} />
-    </div>
+    <Landing
+      user={user}
+      onEnterMap={() => setViewingMapForUserId(user.id)}
+      onViewFriends={
+        () => setViewingMapForUserId("friends") // special token to go to friend dashboard
+      }
+    />
   );
 }
 
