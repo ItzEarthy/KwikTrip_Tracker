@@ -17,11 +17,11 @@ router.get("/visits/:userId", (req, res) => {
   const visits = db
     .prepare(
       `
-      SELECT visits.storeNumber, visits.visitDate, users.nickname
+      SELECT visits.storeNumber, visits.timestamp AS visitDate, users.nickname
       FROM visits
       JOIN users ON users.id = visits.userId
       WHERE visits.userId = ?
-      ORDER BY visits.visitDate DESC
+      ORDER BY visits.timestamp DESC
     `
     )
     .all(userId);
