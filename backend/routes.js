@@ -77,4 +77,61 @@ router.post("/login", express.json(), (req, res) => {
   res.json(user);
 });
 
+// --- GET all users ---
+router.get("/users", (req, res) => {
+  const users = db.prepare("SELECT id, nickname FROM users").all();
+  res.json(users);
+});
+
+// --- GET visits for all users ---
+router.get("/visits", (req, res) => {
+  const visits = db
+    .prepare(
+      `
+      SELECT visits.userId, users.nickname, COUNT(*) as visitCount
+      FROM visits
+      JOIN users ON users.id = visits.userId
+      GROUP BY visits.userId
+    `
+    )
+    .all();
+  res.json(visits);
+});
+
+// --- GET visits for a specific user ---
+router.get("/visits/:userId", (req, res) => {
+  const { userId } = req.params;
+  const visits = db
+    .prepare(
+      `
+      SELECT storeNumber, visitDate
+      FROM visits
+      WHERE userId = ?
+      ORDER BY visitDate DESC
+    `
+    )
+    .all(userId);
+  res.json(visits);
+});
+
+// --- GET user stats ---
+router.get("/stats/:userId", (req, res) => {
+  const { userId } = req.params;
+
+  const totalLocations = locations.length;
+  const visitedLocations = db
+    .prepare("SELECT COUNT(*) as count FROM visits WHERE userId = ?")
+    .get(userId).count;
+
+  const percentVisited = totalLocations
+    ? Math.round((visitedLocations / totalLocations) * 100)
+    : 0;
+
+  res.json({
+    total: totalLocations,
+    visited: visitedLocations,
+    percent: percentVisited,
+  });
+});
+
 module.exports = router;
