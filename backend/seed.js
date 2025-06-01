@@ -1,6 +1,5 @@
-const db = require("./db");
+const db = require('./db');
 
-// Create `users` table
 db.prepare(`
   CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -10,15 +9,14 @@ db.prepare(`
   )
 `).run();
 
-// Create `visits` table
 db.prepare(`
   CREATE TABLE IF NOT EXISTS visits (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     userId INTEGER NOT NULL,
     storeNumber INTEGER NOT NULL,
-    visitDate TEXT NOT NULL,
+    timestamp TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (userId) REFERENCES users(id)
   )
 `).run();
 
-console.log("✅ Database initialized with 'users' and 'visits' tables");
+console.log("✅ Database seeded (users + visits tables ready)");
