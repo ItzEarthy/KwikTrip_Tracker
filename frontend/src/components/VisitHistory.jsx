@@ -1,15 +1,22 @@
 import { useEffect, useState } from "react";
-const API_BASE = import.meta.env.VITE_API_URL || "http://192.168.86.33:3001/api/";
-
+const API_BASE =
+  import.meta.env.VITE_API_URL || "http://192.168.86.33:3001/api";
 
 export default function VisitHistory({ open, onClose }) {
   const [visits, setVisits] = useState([]);
 
   useEffect(() => {
     if (open) {
-      fetch(`${API_BASE}/visits`)
+      const userId = localStorage.getItem("userId");
+      if (!userId) return;
+
+      fetch(`${API_BASE}/visits/${userId}`)
         .then((res) => res.json())
-        .then(setVisits);
+        .then(setVisits)
+        .catch((err) => {
+          console.error("Failed to load visits:", err);
+          setVisits([]);
+        });
     }
   }, [open]);
 
@@ -21,20 +28,34 @@ export default function VisitHistory({ open, onClose }) {
     >
       <div className="p-4 border-b flex justify-between items-center">
         <h2 className="text-lg font-bold">Visit History</h2>
-        <button onClick={onClose} className="btn" style={{ fontSize: '0.9em', color: 'var(--brand-danger)', background: 'transparent' }}>
+        <button
+          onClick={onClose}
+          className="btn"
+          style={{
+            fontSize: "0.9em",
+            color: "var(--brand-danger)",
+            background: "transparent",
+          }}
+        >
           Close
         </button>
       </div>
       <ul className="divide-y">
-        {visits.map((v, i) => (
-          <li key={i} className="p-3 text-sm">
-            <strong>{v.nickname}</strong> visited store #{v.storeNumber}
-            <br />
-            <span style={{ color: 'var(--brand-gray)' }}>
-              {new Date(v.timestamp).toLocaleString()}
-            </span>
+        {visits.length === 0 ? (
+          <li className="p-3 text-sm text-center text-gray-500">
+            No visits recorded yet.
           </li>
-        ))}
+        ) : (
+          visits.map((v, i) => (
+            <li key={i} className="p-3 text-sm">
+              Visited store #{v.storeNumber}
+              <br />
+              <span style={{ color: "var(--brand-gray)" }}>
+                {new Date(v.visitDate || v.timestamp).toLocaleString()}
+              </span>
+            </li>
+          ))
+        )}
       </ul>
     </div>
   );

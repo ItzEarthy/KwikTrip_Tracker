@@ -15,7 +15,15 @@ router.get("/locations", (req, res) => {
 router.get("/visits/:userId", (req, res) => {
   const { userId } = req.params;
   const visits = db
-    .prepare("SELECT * FROM visits WHERE userId = ?")
+    .prepare(
+      `
+      SELECT visits.storeNumber, visits.visitDate, users.nickname
+      FROM visits
+      JOIN users ON users.id = visits.userId
+      WHERE visits.userId = ?
+      ORDER BY visits.visitDate DESC
+    `
+    )
     .all(userId);
   res.json(visits);
 });
