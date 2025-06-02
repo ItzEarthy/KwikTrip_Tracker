@@ -11,6 +11,17 @@
   --brand-font: 'Segoe UI', 'Roboto', Arial, sans-serif;
 }
 
+.app-header {
+  background: var(--brand-primary);
+  color: white;
+  padding: 0.75rem 1.2rem;
+  font-size: 1.2rem;
+  font-weight: bold;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
 body {
   background: var(--brand-bg);
   color: var(--brand-accent);

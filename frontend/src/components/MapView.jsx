@@ -7,6 +7,11 @@ import FriendsList from "./FriendsList";
 import MapFixer from "./MapFixer";
 const API_BASE = `${window.location.origin}/api`;
 
+import Navbar from "./Navbar";
+
+<Navbar title="Map Veiw" />
+
+
 // Custom hook to fix map size
 function ResizeMap() {
   const map = useMap();
