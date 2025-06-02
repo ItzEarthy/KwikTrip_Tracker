@@ -25,9 +25,20 @@ export default function Landing({ user, onEnterMap, onEnterFriends }) {
   return (
     <div
       className="min-h-screen flex flex-col justify-center items-center px-4"
-      style={{ background: "var(--brand-bg)" }}
+      style={{
+        background: "var(--brand-bg)",
+        padding: "1rem",
+      }}
     >
-      <div className="card w-full max-w-md text-center">
+      <div
+        className="card w-full max-w-md text-center"
+        style={{
+          padding: "1.5rem",
+          borderRadius: "8px",
+          boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+          background: "white",
+        }}
+      >
         <h1
           className="mb-2"
           style={{
@@ -38,18 +49,68 @@ export default function Landing({ user, onEnterMap, onEnterFriends }) {
         >
           Welcome, {user.nickname} 👋
         </h1>
-        <p className="text-sm mb-4" style={{ color: "var(--brand-accent)" }}>
+        <p
+          className="text-sm mb-4"
+          style={{
+            color: "var(--brand-accent)",
+            fontSize: "1rem",
+          }}
+        >
           You’ve visited <strong>{stats.visited}</strong> of{" "}
           <strong>{stats.total}</strong> Kwik Trip stores (
           <strong>{stats.percent}%</strong>)
         </p>
 
-        <div className="flex flex-col gap-3 mt-4">
-          <button onClick={onEnterMap} className="btn">
+        <div
+          className="flex flex-col gap-3 mt-4"
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "1rem",
+          }}
+        >
+          <button
+            onClick={onEnterMap}
+            className="btn"
+            style={{
+              padding: "0.75rem 1rem",
+              fontSize: "1rem",
+              borderRadius: "6px",
+              background: "var(--brand-primary)",
+              color: "white",
+              border: "none",
+              cursor: "pointer",
+            }}
+          >
             🗺️ Go to Map
           </button>
-          <button className="btn">📋 Visit History</button>
-          <button className="btn w-full" onClick={() => onEnterFriends()}>
+          <button
+            className="btn"
+            style={{
+              padding: "0.75rem 1rem",
+              fontSize: "1rem",
+              borderRadius: "6px",
+              background: "var(--brand-secondary)",
+              color: "white",
+              border: "none",
+              cursor: "pointer",
+            }}
+          >
+            📋 Visit History
+          </button>
+          <button
+            className="btn w-full"
+            onClick={() => onEnterFriends()}
+            style={{
+              padding: "0.75rem 1rem",
+              fontSize: "1rem",
+              borderRadius: "6px",
+              background: "var(--brand-accent)",
+              color: "white",
+              border: "none",
+              cursor: "pointer",
+            }}
+          >
             👥 Friends Dashboard
           </button>
         </div>
@@ -65,11 +126,32 @@ export default function Landing({ user, onEnterMap, onEnterFriends }) {
             color: "var(--brand-danger)",
             background: "transparent",
             textDecoration: "underline",
+            marginTop: "1.5rem",
+            cursor: "pointer",
           }}
         >
           Log out
         </button>
       </div>
+
+      <style>
+        {`
+          @media (min-width: 768px) {
+            .card {
+              max-width: 600px;
+            }
+            h1 {
+              font-size: 2.5rem;
+            }
+            p {
+              font-size: 1.25rem;
+            }
+            .btn {
+              font-size: 1.1rem;
+            }
+          }
+        `}
+      </style>
     </div>
   );
 }
