@@ -50,7 +50,7 @@ export default function FriendsDashboard({ onSelectUser }) {
                     onClick={() => {
                       localStorage.setItem("mode", "friend");
                       localStorage.setItem("selectedUserId", user.id);
-                      onSelectUser(user.id);
+                      onSelectUser(user.id); // ✅ triggers map view
                     }}
                   >
                     View

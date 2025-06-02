@@ -7,8 +7,6 @@ import FriendsList from "./FriendsList";
 import MapFixer from "./MapFixer";
 const API_BASE = `${window.location.origin}/api`;
 
-
-
 // Custom hook to fix map size
 function ResizeMap() {
   const map = useMap();
@@ -51,7 +49,7 @@ export default function MapView() {
   const [locations, setLocations] = useState([]);
   const [visits, setVisits] = useState([]);
   const [selectedUserId, setSelectedUserId] = useState(
-    mode === "self" ? localStorage.getItem("userId") : ""
+    localStorage.getItem("selectedUserId") || localStorage.getItem("userId")
   );
 
   useEffect(() => {

@@ -54,6 +54,23 @@ function App() {
     );
   }
 
+  if (
+    viewingMapForUserId &&
+    viewingMapForUserId !== user.id &&
+    viewingMapForUserId !== "friends"
+  ) {
+    localStorage.setItem("mode", "friend");
+    localStorage.setItem("selectedUserId", viewingMapForUserId);
+    return (
+      <div className="h-screen w-screen flex flex-col overflow-hidden">
+        <MapView />
+        <button onClick={logout} className="fixed top-4 right-4 btn">
+          Log out
+        </button>
+      </div>
+    );
+  }
+
   // 🧭 Show personal map view
   if (viewingMapForUserId === user.id) {
     localStorage.setItem("mode", "self");
