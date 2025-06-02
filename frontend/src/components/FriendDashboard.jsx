@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 const API_BASE = `${window.location.origin}/api`;
+import Navbar from "./Navbar";
 
 export default function FriendsDashboard({ onSelectUser }) {
   const [users, setUsers] = useState([]);
@@ -32,6 +33,7 @@ export default function FriendsDashboard({ onSelectUser }) {
 
   return (
     <div className="p-4 max-w-md mx-auto">
+      <Navbar />
       <h1 className="text-xl font-bold mb-4 text-center">Friends Dashboard</h1>
       <div className="space-y-4">
         {users.length === 0 ? (
