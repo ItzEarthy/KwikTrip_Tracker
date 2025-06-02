@@ -91,10 +91,8 @@ function App() {
   return (
     <Landing
       user={user}
-      onEnterMap={() => setViewingMapForUserId(user.id)}
-      onViewFriends={
-        () => setViewingMapForUserId("friends") // special token to go to friend dashboard
-      }
+      onEnterMap={() => setAtMap(true)}
+      onViewFriends={() => setViewingMapForUserId("friends")} // ✅ add this
     />
   );
 }
