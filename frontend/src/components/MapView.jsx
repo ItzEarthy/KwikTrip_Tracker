@@ -9,7 +9,7 @@ const API_BASE = `${window.location.origin}/api`;
 
 import Navbar from "./Navbar";
 
-<Navbar title="Map Veiw" />
+
 
 
 // Custom hook to fix map size
@@ -78,6 +78,8 @@ export default function MapView() {
 
   return (
     <div className="h-screen w-screen flex flex-col overflow-hidden">
+      <Navbar />
+      
       <div className="flex-none z-10 p-2 space-y-2">
         {mode === "friend" && (
           <FriendsList
