@@ -29,7 +29,7 @@ export default function Landing({ user, onEnterMap, onEnterFriends }) {
           Welcome, {user.nickname} 👋
         </h1>
 
-        <p className="text-sm mb-4" style={{ color: "var(--brand-accent)" }}>
+        <p className="text-sm mb-4">
           You’ve visited <strong>{stats.visited}</strong> of{" "}
           <strong>{stats.total}</strong> Kwik Trip stores (
           <strong>{stats.percent}%</strong>)

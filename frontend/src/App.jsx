@@ -5,6 +5,7 @@ import Register from "./components/Register";
 import Landing from "./components/Landing";
 import VisitHistory from "./components/VisitHistory";
 import FriendDashboard from "./components/FriendDashboard";
+import './styles/theme.css';
 
 function App() {
   const [user, setUser] = useState(null);
