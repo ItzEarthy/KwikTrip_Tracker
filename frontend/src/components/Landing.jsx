@@ -49,7 +49,7 @@ export default function Landing({ user, onEnterMap, onEnterFriends }) {
             🗺️ Go to Map
           </button>
           <button className="btn">📋 Visit History</button>
-          <button className="btn w-full" onClick={() => onViewFriends()}>
+          <button className="btn w-full" onClick={() => onEnterFriends()}>
             👥 Friends Dashboard
           </button>
         </div>

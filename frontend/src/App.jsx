@@ -83,7 +83,7 @@ function App() {
     <Landing
       user={user}
       onEnterMap={() => setViewingMapForUserId(user.id)}
-      onViewFriends={() => setViewingMapForUserId("friends")}
+      onEnterFriends={() => setViewingMapForUserId("friends")}
     />
   );
 }
