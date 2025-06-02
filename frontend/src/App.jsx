@@ -78,21 +78,12 @@ function App() {
     );
   }
 
-  // 📍 Show Friends Dashboard
-  if (viewingMapForUserId === "friends") {
-    return (
-      <FriendDashboard
-        onSelectUser={(friendId) => setViewingMapForUserId(friendId)}
-      />
-    );
-  }
-
   // 🏠 Show landing dashboard
   return (
     <Landing
       user={user}
-      onEnterMap={() => setAtMap(true)}
-      onViewFriends={() => setViewingMapForUserId("friends")} // ✅ add this
+      onEnterMap={() => setViewingMapForUserId(user.id)}
+      onViewFriends={() => setViewingMapForUserId("friends")}
     />
   );
 }
