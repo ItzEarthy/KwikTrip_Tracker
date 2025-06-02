@@ -1,14 +1,13 @@
-
-/* Brand theme for KwikTrip Tracker */
+/* KwikTrip Tracker Red, White, Black Theme */
 :root {
-  --brand-primary: #d62828;
-  --brand-secondary: #f77f00;
-  --brand-accent: #003049;
-  --brand-bg: #f9f9f9;
-  --brand-surface: #fff;
-  --brand-success: #43aa8b;
-  --brand-danger: #d62828;
-  --brand-gray: #e5e5e5;
+  --brand-primary: #d62828;      /* Bold red */
+  --brand-secondary: #9d0208;    /* Deep red */
+  --brand-accent: #000000;       /* Black */
+  --brand-bg: #ffffff;           /* White background */
+  --brand-surface: #f5f5f5;      /* Light surface for cards */
+  --brand-success: #43aa8b;      /* Optional: success green */
+  --brand-danger: #d62828;       /* Red for danger */
+  --brand-gray: #cccccc;         /* Neutral gray */
   --brand-font: 'Segoe UI', 'Roboto', Arial, sans-serif;
 }
 
@@ -25,10 +24,10 @@ body {
   font-size: 2rem;
   font-weight: bold;
   letter-spacing: 2px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
   display: flex;
   align-items: center;
   gap: 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .brand-badge {
@@ -44,7 +43,7 @@ body {
 .card {
   background: var(--brand-surface);
   border-radius: 1rem;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
   padding: 1.5rem;
   margin: 1rem 0;
 }
@@ -80,20 +79,20 @@ input, select {
   margin-top: 0.2rem;
 }
 .progress-bar-inner {
-  background: var(--brand-success);
+  background: var(--brand-primary);
   height: 100%;
   transition: width 0.4s;
 }
 
 .leaflet-container {
   border-radius: 1.2rem;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.10);
 }
 
 /* Custom popup styling */
 .leaflet-popup-content-wrapper {
   border-radius: 1rem;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.10);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.10);
 }
 
 /* Responsive tweaks */
