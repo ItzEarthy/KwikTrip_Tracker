@@ -162,6 +162,23 @@ export default function MapView() {
                         ➕ Mark Visited
                       </button>
                     ) : null}
+                    {isVisited(loc.storeNumber) && !isFriend && (
+                      <button
+                        className="bg-gray-300 hover:bg-gray-400 text-black px-3 py-1 rounded"
+                        onClick={() => {
+                          const userId = localStorage.getItem("userId");
+                          fetch(`/api/visits/${userId}/${loc.storeNumber}`, {
+                            method: "DELETE",
+                          })
+                            .then((res) => res.json())
+                            .then(() => {
+                              setVisits(visits.filter((v) => v.storeNumber !== loc.storeNumber));
+                            });
+                        }}
+                      >
+                        ❌ Remove Visit
+                      </button>
+                    )}
                   </div>
                 </Popup>
               </Marker>

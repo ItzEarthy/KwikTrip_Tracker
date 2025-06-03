@@ -134,4 +134,15 @@ router.get("/stats/:userId", (req, res) => {
   });
 });
 
+// --- Delete a visit ---
+router.delete("/visits/:userId/:storeNumber", (req, res) => {
+  const { userId, storeNumber } = req.params;
+  const stmt = db.prepare(
+    "DELETE FROM visits WHERE userId = ? AND storeNumber = ?"
+  );
+  stmt.run(userId, storeNumber);
+  res.json({ success: true });
+});
+
+
 module.exports = router;
