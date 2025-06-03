@@ -7,7 +7,7 @@ import VisitHistory from "./components/VisitHistory";
 import FriendDashboard from "./components/FriendDashboard";
 import Profile from "./components/Profile";
 
-import './styles/theme.css';
+import "./styles/theme.css";
 
 function App() {
   const [user, setUser] = useState(null);
@@ -73,10 +73,8 @@ function App() {
       </div>
     );
   }
-    if (viewingMapForUserId === "profile") {
-    return (
-      <Profile user={user} onBack={() => setViewingMapForUserId(null)} />
-    );
+  if (viewingMapForUserId === "profile") {
+    return <Profile user={user} onBack={() => setViewingMapForUserId(null)} />;
   }
 
   // 🧭 Show personal map view
@@ -104,14 +102,6 @@ function App() {
   }
 
   // 🏠 Show landing dashboard
-  return (
-    <Landing
-      user={user}
-      onEnterMap={() => setViewingMapForUserId(user.id)}
-      onEnterFriends={() => setViewingMapForUserId("friends")}
-    />
-  );
-
   return (
     <Landing
       user={user}
