@@ -112,15 +112,14 @@ function App() {
     />
   );
 
-  <Landing
-  user={user}
-  onEnterMap={() => setViewingMapForUserId(user.id)}
-  onEnterFriends={() => setViewingMapForUserId("friends")}
-  onEnterProfile={() => setViewingMapForUserId("profile")}
-/>
-
-
-  
+  return (
+    <Landing
+      user={user}
+      onEnterMap={() => setViewingMapForUserId(user.id)}
+      onEnterFriends={() => setViewingMapForUserId("friends")}
+      onEnterProfile={() => setViewingMapForUserId("profile")}
+    />
+  );
 }
 
 export default App;
