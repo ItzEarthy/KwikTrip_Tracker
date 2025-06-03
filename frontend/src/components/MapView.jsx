@@ -9,9 +9,6 @@ const API_BASE = `${window.location.origin}/api`;
 
 import Navbar from "./Navbar";
 
-
-
-
 // Custom hook to fix map size
 function ResizeMap() {
   const map = useMap();

@@ -23,9 +23,19 @@ export default function Landing({ user, onEnterMap, onEnterFriends }) {
   }, [user]);
 
   return (
-    <div className="min-h-screen flex flex-col justify-center items-center px-4" style={{ background: "var(--brand-bg)" }}>
+    <div
+      className="min-h-screen flex flex-col justify-center items-center px-4"
+      style={{ background: "var(--brand-bg)" }}
+    >
       <div className="card w-full max-w-md text-center">
-        <h1 className="mb-2" style={{ color: "var(--brand-primary)", fontSize: "2rem", fontWeight: "bold" }}>
+        <h1
+          className="mb-2"
+          style={{
+            color: "var(--brand-primary)",
+            fontSize: "2rem",
+            fontWeight: "bold",
+          }}
+        >
           Welcome, {user.nickname} 👋
         </h1>
 
@@ -42,6 +52,9 @@ export default function Landing({ user, onEnterMap, onEnterFriends }) {
           <button className="btn">📋 Visit History</button>
           <button className="btn" onClick={onEnterFriends}>
             👥 Friends Dashboard
+          </button>
+          <button className="btn" onClick={() => setViewing("profile")}>
+            ⚙️ Profile Settings
           </button>
         </div>
 

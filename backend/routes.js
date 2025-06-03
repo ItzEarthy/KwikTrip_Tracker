@@ -144,5 +144,36 @@ router.delete("/visits/:userId/:storeNumber", (req, res) => {
   res.json({ success: true });
 });
 
+// PUT /api/users/:id/nickname
+// --- PUT /users/:id/nickname ---
+router.put("/users/:id/nickname", express.json(), (req, res) => {
+  const { id } = req.params;
+  const { nickname } = req.body;
+
+  if (!nickname) {
+    return res.status(400).json({ error: "Nickname is required." });
+  }
+
+  const stmt = db.prepare("UPDATE users SET nickname = ? WHERE id = ?");
+  const result = stmt.run(nickname, id);
+
+  res.json({ success: result.changes > 0 });
+});
+
+// --- POST /users/:id/reset-password ---
+router.post("/users/:id/reset-password", express.json(), (req, res) => {
+  const { id } = req.params;
+  const { newPassword } = req.body;
+
+  if (!newPassword || newPassword.length < 6) {
+    return res.status(400).json({ error: "Password must be at least 6 characters." });
+  }
+
+  const stmt = db.prepare("UPDATE users SET password = ? WHERE id = ?");
+  const result = stmt.run(newPassword, id); // 🔒 Note: In production, hash the password.
+
+  res.json({ success: result.changes > 0 });
+});
+
 
 module.exports = router;
