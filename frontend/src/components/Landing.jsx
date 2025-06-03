@@ -53,7 +53,7 @@ export default function Landing({ user, onEnterMap, onEnterFriends }) {
           <button className="btn" onClick={onEnterFriends}>
             👥 Friends Dashboard
           </button>
-          <button className="btn" onClick={() => setViewing("profile")}>
+          <button className="btn" onClick={onEnterProfile}>
             ⚙️ Profile Settings
           </button>
         </div>

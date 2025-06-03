@@ -5,6 +5,8 @@ import Register from "./components/Register";
 import Landing from "./components/Landing";
 import VisitHistory from "./components/VisitHistory";
 import FriendDashboard from "./components/FriendDashboard";
+import Profile from "./components/Profile";
+
 import './styles/theme.css';
 
 function App() {
@@ -71,6 +73,11 @@ function App() {
       </div>
     );
   }
+    if (viewingMapForUserId === "profile") {
+    return (
+      <Profile user={user} onBack={() => setViewingMapForUserId(null)} />
+    );
+  }
 
   // 🧭 Show personal map view
   if (viewingMapForUserId === user.id) {
@@ -104,6 +111,16 @@ function App() {
       onEnterFriends={() => setViewingMapForUserId("friends")}
     />
   );
+
+  <Landing
+  user={user}
+  onEnterMap={() => setViewingMapForUserId(user.id)}
+  onEnterFriends={() => setViewingMapForUserId("friends")}
+  onEnterProfile={() => setViewingMapForUserId("profile")}
+/>
+
+
+  
 }
 
 export default App;
