@@ -5,7 +5,7 @@ import Register from "./components/Register";
 import Landing from "./components/Landing";
 import VisitHistory from "./components/VisitHistory";
 import FriendDashboard from "./components/FriendDashboard";
-import Profile from "./components/Profile";
+import Profile from "./components/UserProfile";
 
 import "./styles/theme.css";
 
