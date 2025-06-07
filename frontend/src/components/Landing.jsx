@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 const API_BASE = `${window.location.origin}/api`;
 
-export default function Landing({ user, onEnterMap, onEnterFriends }) {
+export default function Landing({ user, onEnterMap, onEnterFriends, onEnterProfile }) {
   const [stats, setStats] = useState({ total: 0, visited: 0, percent: 0 });
 
   useEffect(() => {
