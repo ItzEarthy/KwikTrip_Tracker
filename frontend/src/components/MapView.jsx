@@ -75,8 +75,10 @@ export default function MapView() {
 
   return (
     <div className="h-screen w-screen flex flex-col overflow-hidden">
-      <Navbar />
-      
+      <div style={{ paddingTop: "4rem" }}>
+        <Navbar />
+      </div>
+
       <div className="flex-none z-10 p-2 space-y-2">
         {mode === "friend" && (
           <FriendsList
@@ -169,7 +171,11 @@ export default function MapView() {
                           })
                             .then((res) => res.json())
                             .then(() => {
-                              setVisits(visits.filter((v) => v.storeNumber !== loc.storeNumber));
+                              setVisits(
+                                visits.filter(
+                                  (v) => v.storeNumber !== loc.storeNumber
+                                )
+                              );
                             });
                         }}
                       >

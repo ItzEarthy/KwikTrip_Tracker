@@ -5,7 +5,8 @@ import Register from "./components/Register";
 import Landing from "./components/Landing";
 import VisitHistory from "./components/VisitHistory";
 import FriendDashboard from "./components/FriendDashboard";
-import Profile from "./components/UserProfile";
+import UserProfile from "./components/UserProfile";
+import AdminPortal from "./components/AdminPortal";
 
 import "./styles/theme.css";
 
@@ -13,12 +14,22 @@ function App() {
   const [user, setUser] = useState(null);
   const [registering, setRegistering] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
-  const [viewingMapForUserId, setViewingMapForUserId] = useState(null); // New
+  const [viewingMapForUserId, setViewingMapForUserId] = useState(null);
 
   useEffect(() => {
     const id = localStorage.getItem("userId");
     const nickname = localStorage.getItem("nickname");
-    if (id && nickname) setUser({ id, nickname });
+
+    if (id && nickname) {
+      fetch(`${window.location.origin}/api/users/${id}/is-admin`)
+        .then((res) => res.json())
+        .then((data) => {
+          setUser({ id, nickname, isAdmin: data.isAdmin });
+        })
+        .catch(() => {
+          setUser({ id, nickname, isAdmin: false }); // fallback if request fails
+        });
+    }
   }, []);
 
   const logout = () => {
@@ -27,6 +38,7 @@ function App() {
     setViewingMapForUserId(null);
   };
 
+  // 🔒 Not logged in
   if (!user) {
     return registering ? (
       <Register onRegister={setUser} />
@@ -35,6 +47,20 @@ function App() {
     );
   }
 
+  // 🧑‍💻 Profile Page
+  if (viewingMapForUserId === "profile") {
+    return (
+      <UserProfile user={user} onBack={() => setViewingMapForUserId(null)} />
+    );
+  }
+
+  if (viewingMapForUserId === "adminPortal") {
+    return (
+      <AdminPortal user={user} onBack={() => setViewingMapForUserId(null)} />
+    );
+  }
+
+  // 👥 Friends Dashboard
   if (viewingMapForUserId === "friends") {
     return (
       <FriendDashboard
@@ -43,20 +69,7 @@ function App() {
     );
   }
 
-  // 👤 Show friend's map view
-  if (viewingMapForUserId && viewingMapForUserId !== user.id) {
-    localStorage.setItem("mode", "friend");
-    localStorage.setItem("selectedUserId", viewingMapForUserId);
-    return (
-      <div className="h-screen w-screen flex flex-col overflow-hidden">
-        <MapView />
-        <button onClick={logout} className="fixed top-4 right-4 btn">
-          Log out
-        </button>
-      </div>
-    );
-  }
-
+  // 🗺️ Viewing another user's map
   if (
     viewingMapForUserId &&
     viewingMapForUserId !== user.id &&
@@ -73,11 +86,8 @@ function App() {
       </div>
     );
   }
-  if (viewingMapForUserId === "profile") {
-    return <Profile user={user} onBack={() => setViewingMapForUserId(null)} />;
-  }
 
-  // 🧭 Show personal map view
+  // 🧭 Personal map view
   if (viewingMapForUserId === user.id) {
     localStorage.setItem("mode", "self");
     localStorage.setItem("selectedUserId", user.id);
@@ -101,13 +111,14 @@ function App() {
     );
   }
 
-  // 🏠 Show landing dashboard
+  // 🏠 Landing Page
   return (
     <Landing
       user={user}
       onEnterMap={() => setViewingMapForUserId(user.id)}
       onEnterFriends={() => setViewingMapForUserId("friends")}
       onEnterProfile={() => setViewingMapForUserId("profile")}
+      onEnterAdmin={() => setViewingMapForUserId("adminPortal")} // ✅ add this line
     />
   );
 }

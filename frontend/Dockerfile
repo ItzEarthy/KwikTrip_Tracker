@@ -3,6 +3,8 @@ FROM node:18 as builder
 WORKDIR /app
 COPY . .
 RUN npm install
+RUN npm install prop-types
+RUN npm install react-icons
 RUN npm run build
 
 # Stage 2: Serve with nginx

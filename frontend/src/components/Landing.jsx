@@ -1,7 +1,13 @@
 import { useEffect, useState } from "react";
 const API_BASE = `${window.location.origin}/api`;
 
-export default function Landing({ user, onEnterMap, onEnterFriends, onEnterProfile }) {
+export default function Landing({
+  user,
+  onEnterMap,
+  onEnterFriends,
+  onEnterProfile,
+  onEnterAdmin,
+}) {
   const [stats, setStats] = useState({ total: 0, visited: 0, percent: 0 });
 
   useEffect(() => {
@@ -56,6 +62,12 @@ export default function Landing({ user, onEnterMap, onEnterFriends, onEnterProfi
           <button className="btn" onClick={onEnterProfile}>
             ⚙️ Profile Settings
           </button>
+
+          {user.isAdmin && (
+            <button className="btn" onClick={onEnterAdmin}>
+              🛠️ Admin Portal
+            </button>
+          )}
         </div>
 
         <button

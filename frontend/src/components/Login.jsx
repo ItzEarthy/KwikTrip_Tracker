@@ -2,9 +2,6 @@ import { useState } from "react";
 import Layout from "./Layout";
 const API_BASE = `${window.location.origin}/api`;
 
-
-
-
 export default function Login({ onLogin, switchToRegister }) {
   const [form, setForm] = useState({ username: "", password: "" });
   const [error, setError] = useState("");
@@ -24,9 +21,9 @@ export default function Login({ onLogin, switchToRegister }) {
         body: JSON.stringify(form),
       });
 
-      const data = await res.json();
+      const data = await res.json(); // ✅ MUST be here before using `data`
+
       if (res.ok) {
-        console.log("✅ Logged in:", data);
         localStorage.setItem("userId", data.id);
         localStorage.setItem("nickname", data.nickname);
         onLogin(data);
@@ -43,7 +40,9 @@ export default function Login({ onLogin, switchToRegister }) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-100 to-blue-300 flex items-center justify-center px-4">
       <div className="bg-white w-full max-w-md p-6 rounded-xl shadow-lg">
-        <h1 className="text-2xl font-bold text-blue-700 mb-4 text-center">Login</h1>
+        <h1 className="text-2xl font-bold text-blue-700 mb-4 text-center">
+          Login
+        </h1>
         <input
           name="username"
           placeholder="Username"
