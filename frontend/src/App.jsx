@@ -1,4 +1,7 @@
+
 import { useState, useEffect } from "react";
+import { Routes, Route, useNavigate, Navigate } from "react-router-dom";
+
 import MapView from "./components/MapView";
 import Login from "./components/Login";
 import Register from "./components/Register";
@@ -10,11 +13,11 @@ import AdminPortal from "./components/AdminPortal";
 
 import "./styles/theme.css";
 
-function App() {
+export default function App() {
   const [user, setUser] = useState(null);
   const [registering, setRegistering] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
-  const [viewingMapForUserId, setViewingMapForUserId] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const id = localStorage.getItem("userId");
@@ -27,7 +30,7 @@ function App() {
           setUser({ id, nickname, isAdmin: data.isAdmin });
         })
         .catch(() => {
-          setUser({ id, nickname, isAdmin: false }); // fallback if request fails
+          setUser({ id, nickname, isAdmin: false });
         });
     }
   }, []);
@@ -35,10 +38,9 @@ function App() {
   const logout = () => {
     localStorage.clear();
     setUser(null);
-    setViewingMapForUserId(null);
+    navigate("/login");
   };
 
-  // 🔒 Not logged in
   if (!user) {
     return registering ? (
       <Register onRegister={setUser} />
@@ -47,80 +49,50 @@ function App() {
     );
   }
 
-  // 🧑‍💻 Profile Page
-  if (viewingMapForUserId === "profile") {
-    return (
-      <UserProfile user={user} onBack={() => setViewingMapForUserId(null)} />
-    );
-  }
-
-  if (viewingMapForUserId === "adminPortal") {
-    return (
-      <AdminPortal user={user} onBack={() => setViewingMapForUserId(null)} />
-    );
-  }
-
-  // 👥 Friends Dashboard
-  if (viewingMapForUserId === "friends") {
-    return (
-      <FriendDashboard
-        onSelectUser={(friendId) => setViewingMapForUserId(friendId)}
-      />
-    );
-  }
-
-  // 🗺️ Viewing another user's map
-  if (
-    viewingMapForUserId &&
-    viewingMapForUserId !== user.id &&
-    viewingMapForUserId !== "friends"
-  ) {
-    localStorage.setItem("mode", "friend");
-    localStorage.setItem("selectedUserId", viewingMapForUserId);
-    return (
-      <div className="h-screen w-screen flex flex-col overflow-hidden">
-        <MapView />
-        <button onClick={logout} className="fixed top-4 right-4 btn">
-          Log out
-        </button>
-      </div>
-    );
-  }
-
-  // 🧭 Personal map view
-  if (viewingMapForUserId === user.id) {
-    localStorage.setItem("mode", "self");
-    localStorage.setItem("selectedUserId", user.id);
-    return (
-      <div className="h-screen w-screen flex flex-col overflow-hidden">
-        <MapView />
-        <button
-          className="fixed bottom-4 right-4 btn"
-          onClick={() => setShowHistory(true)}
-        >
-          📋 History
-        </button>
-        <button onClick={logout} className="fixed top-4 right-4 btn">
-          Log out
-        </button>
-        <VisitHistory
-          open={showHistory}
-          onClose={() => setShowHistory(false)}
-        />
-      </div>
-    );
-  }
-
-  // 🏠 Landing Page
   return (
-    <Landing
-      user={user}
-      onEnterMap={() => setViewingMapForUserId(user.id)}
-      onEnterFriends={() => setViewingMapForUserId("friends")}
-      onEnterProfile={() => setViewingMapForUserId("profile")}
-      onEnterAdmin={() => setViewingMapForUserId("adminPortal")} // ✅ add this line
-    />
+    <Routes>
+      <Route path="/" element={<Landing
+        user={user}
+        onEnterMap={() => navigate("/map")}
+        onEnterFriends={() => navigate("/friends")}
+        onEnterProfile={() => navigate("/profile")}
+        onEnterAdmin={() => navigate("/admin")}
+      />} />
+      
+      <Route path="/map" element={
+        <>
+          <MapView />
+          <button
+            className="fixed bottom-4 right-4 btn"
+            onClick={() => setShowHistory(true)}
+          >
+            📋 History
+          </button>
+          <button onClick={logout} className="fixed top-4 right-4 btn">
+            Log out
+          </button>
+          <VisitHistory open={showHistory} onClose={() => setShowHistory(false)} />
+        </>
+      } />
+
+      <Route path="/friends" element={
+        <FriendDashboard onSelectUser={(id) => navigate(`/map/${id}`)} />
+      } />
+
+      <Route path="/map/:friendId" element={
+        <>
+          {localStorage.setItem("mode", "friend")}
+          <MapView />
+          <button onClick={logout} className="fixed top-4 right-4 btn">
+            Log out
+          </button>
+        </>
+      } />
+
+      <Route path="/profile" element={<UserProfile user={user} onBack={() => navigate("/")} />} />
+      <Route path="/admin" element={<AdminPortal user={user} onBack={() => navigate("/")} />} />
+
+      <Route path="*" element={<Navigate to="/" />} />
+    </Routes>
   );
 }
-
-export default App;

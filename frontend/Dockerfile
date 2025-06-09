@@ -6,6 +6,7 @@ RUN npm install
 RUN npm install prop-types
 RUN npm install react-icons
 RUN npm run build
+RUN npm install react-router-dom
 
 # Stage 2: Serve with nginx
 FROM nginx:alpine

@@ -8,18 +8,24 @@ export default function Navbar({
   const navigate = useNavigate();
 
   return (
-    <header className="navbar app-header">
+    <header className="navbar app-header flex items-center justify-between px-4">
       <button
         onClick={onBack || (() => navigate(-1))}
         className="text-white font-bold text-lg bg-transparent border-none"
         style={{ background: "transparent", fontSize: "1.2rem" }}
+        aria-label="Back"
       >
         ⬅
       </button>
 
-      <h1 className="flex-1 text-center text-white text-xl font-bold">
-        {title}
-      </h1>
+      <div className="flex items-center gap-2">
+        <img
+          src="/kttlogo.png"
+          alt="KwikTrip Logo"
+          style={{ height: "32px", width: "32px" }}
+        />
+        <h1 className="text-white text-xl font-bold">{title}</h1>
+      </div>
 
       <button
         onClick={
@@ -31,6 +37,7 @@ export default function Navbar({
         }
         className="text-white font-bold text-lg bg-transparent border-none"
         style={{ background: "transparent", fontSize: "1.2rem" }}
+        aria-label="Logout"
       >
         ⏻
       </button>
