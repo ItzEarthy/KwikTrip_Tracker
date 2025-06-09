@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import logo from "/kttlogo.png";
 const API_BASE = `${window.location.origin}/api`;
 
 export default function Landing({
@@ -33,6 +34,13 @@ export default function Landing({
       className="min-h-screen flex flex-col justify-center items-center px-4"
       style={{ background: "var(--brand-bg)" }}
     >
+      {/* Add the logo */}
+      <img
+        src={logo}
+        alt="KwikTrip Tracker Logo"
+        className="mb-4 w-24 h-24"
+      />
+
       <div className="card w-full max-w-md text-center">
         <h1
           className="mb-2"
