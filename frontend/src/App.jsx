@@ -50,27 +50,30 @@ export default function App() {
   }
 
   return (
-    <Routes>
-      <Route path="/" element={<Landing
-        user={user}
-        onEnterMap={() => navigate("/map")}
-        onEnterFriends={() => navigate("/friends")}
-        onEnterProfile={() => navigate("/profile")}
-        onEnterAdmin={() => navigate("/admin")}
-      />} />
+    <>
+      <Routes>
+      <Route
+        path="/"
+        element={
+          <Landing
+            user={user}
+            onEnterMap={() => navigate("/map")}
+            onEnterFriends={() => navigate("/friends")}
+            onEnterProfile={() => navigate("/profile")}
+            onEnterAdmin={() => navigate("/admin")}
+            onOpenHistory={() => setShowHistory(true)}
+          />
+        }
+      />
       
-      <Route path="/map" element={
-        <>
-          <MapView />
-          <button
-            className="fixed bottom-4 right-4 btn"
-            onClick={() => setShowHistory(true)}
-          >
-            📋 History
-          </button>
-          <VisitHistory open={showHistory} onClose={() => setShowHistory(false)} />
-        </>
-      } />
+      <Route
+        path="/map"
+        element={
+          <>
+            <MapView />
+          </>
+        }
+      />
 
       <Route path="/friends" element={
         <FriendDashboard onSelectUser={(id) => navigate(`/map/${id}`)} />
@@ -87,6 +90,15 @@ export default function App() {
       <Route path="/admin" element={<AdminPortal user={user} onBack={() => navigate("/")} />} />
 
       <Route path="*" element={<Navigate to="/" />} />
-    </Routes>
+      </Routes>
+      {/* Global history button and panel so it's accessible from the dashboard */}
+      <button
+        className="fixed bottom-4 right-4 btn"
+        onClick={() => setShowHistory(true)}
+      >
+        📋 History
+      </button>
+      <VisitHistory open={showHistory} onClose={() => setShowHistory(false)} />
+    </>
   );
 }

@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
 const API_BASE = `${window.location.origin}/api`;
 
-
-
 export default function VisitHistory({ open, onClose }) {
   const [visits, setVisits] = useState([]);
 
@@ -22,43 +20,74 @@ export default function VisitHistory({ open, onClose }) {
     }
   }, [open]);
 
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key === "Escape") onClose?.();
+    };
+    if (open) window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, onClose]);
+
   return (
-    <div
-      className={`fixed bottom-0 left-0 right-0 card max-h-[50%] overflow-y-auto transition-transform duration-300 rounded-t-xl z-50 ${
-        open ? "translate-y-0" : "translate-y-full"
-      }`}
-    >
-      <div className="p-4 border-b flex justify-between items-center">
-        <h2 className="text-lg font-bold">Visit History</h2>
-        <button
-          onClick={onClose}
-          className="btn"
-          style={{
-            fontSize: "0.9em",
-            color: "var(--brand-danger)",
-            background: "transparent",
-          }}
-        >
-          Close
-        </button>
+    <>
+      {/* Backdrop */}
+      <div
+        aria-hidden={!open}
+        className={`fixed inset-0 bg-black/40 z-40 transition-opacity duration-200 ${
+          open ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+        }`}
+        onClick={onClose}
+      />
+
+      {/* Panel */}
+      <div
+        role="dialog"
+        aria-modal="true"
+        className={`fixed bottom-0 left-0 right-0 mx-auto w-full max-w-xl bg-white shadow-xl max-h-[60%] overflow-y-auto transition-transform duration-300 rounded-t-xl z-50 ${
+          open ? "translate-y-0" : "translate-y-full"
+        }`}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="p-4 border-b flex justify-between items-center">
+          <div>
+            <h2 className="text-lg font-bold">Visit History</h2>
+            <p className="text-sm text-slate-500">{visits.length} visit{visits.length !== 1 ? "s" : ""}</p>
+          </div>
+
+          <button
+            onClick={onClose}
+            aria-label="Close visit history"
+            className="px-3 py-1 rounded-md hover:bg-gray-100"
+            style={{
+              fontSize: "0.9em",
+              color: "var(--brand-danger)",
+              background: "transparent",
+            }}
+          >
+            Close
+          </button>
+        </div>
+
+        <ul className="divide-y">
+          {visits.length === 0 ? (
+            <li className="p-6 text-sm text-center text-gray-500">No visits recorded yet.</li>
+          ) : (
+            visits.map((v, i) => (
+              <li key={i} className="p-4 flex gap-3 items-start">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center text-white font-semibold">
+                  #{v.storeNumber}
+                </div>
+                <div className="flex-1">
+                  <div className="text-sm font-medium">Kwik Trip #{v.storeNumber}</div>
+                  <div className="text-xs text-slate-500">
+                    {new Date(v.visitDate || v.timestamp).toLocaleString()}
+                  </div>
+                </div>
+              </li>
+            ))
+          )}
+        </ul>
       </div>
-      <ul className="divide-y">
-        {visits.length === 0 ? (
-          <li className="p-3 text-sm text-center text-gray-500">
-            No visits recorded yet.
-          </li>
-        ) : (
-          visits.map((v, i) => (
-            <li key={i} className="p-3 text-sm">
-              Visited store #{v.storeNumber}
-              <br />
-              <span style={{ color: "var(--brand-gray)" }}>
-                {new Date(v.visitDate || v.timestamp).toLocaleString()}
-              </span>
-            </li>
-          ))
-        )}
-      </ul>
-    </div>
+    </>
   );
 }

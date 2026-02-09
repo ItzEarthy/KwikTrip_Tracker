@@ -8,6 +8,7 @@ export default function Landing({
   onEnterFriends,
   onEnterProfile,
   onEnterAdmin,
+  onOpenHistory,
 }) {
   const [stats, setStats] = useState({ total: 0, visited: 0, percent: 0 });
 
@@ -63,7 +64,7 @@ export default function Landing({
           <button className="btn" onClick={onEnterMap}>
             🗺️ Go to Map
           </button>
-          <button className="btn">📋 Visit History</button>
+          <button className="btn" onClick={onOpenHistory}>📋 Visit History</button>
           <button className="btn" onClick={onEnterFriends}>
             👥 Friends Dashboard
           </button>
