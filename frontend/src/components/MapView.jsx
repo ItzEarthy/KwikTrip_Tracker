@@ -1,10 +1,11 @@
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import { useEffect, useState } from "react";
 import L from "leaflet";
 import Filters from "./Filters";
 import FriendsList from "./FriendsList";
 import MapFixer from "./MapFixer";
+import LocationService from "./LocationService";
 const API_BASE = `${window.location.origin}/api`;
 
 import Navbar from "./Navbar";
@@ -41,6 +42,13 @@ const friendVisitedIcon = new L.Icon({
   popupAnchor: [0, -30],
 });
 
+const userIcon = new L.Icon({
+  iconUrl:
+    'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28"><circle cx="14" cy="14" r="10" fill="%23007bff"/></svg>',
+  iconSize: [28, 28],
+  iconAnchor: [14, 14],
+});
+
 export default function MapView() {
   const mode = localStorage.getItem("mode") || "self";
   const [filter, setFilter] = useState({
@@ -53,6 +61,7 @@ export default function MapView() {
   const [selectedUserId, setSelectedUserId] = useState(
     localStorage.getItem("selectedUserId") || localStorage.getItem("userId")
   );
+  const [userLocation, setUserLocation] = useState(null);
 
   useEffect(() => {
     fetch(`${API_BASE}/locations`)
@@ -72,6 +81,23 @@ export default function MapView() {
 
   const isFriend =
     mode === "friend" && selectedUserId !== localStorage.getItem("userId");
+
+  function UserMarker({ position }) {
+    const map = useMap();
+    useEffect(() => {
+      if (!position) return;
+      // center map on user when location updates
+      map.setView([position.lat, position.lng], 13);
+    }, [position, map]);
+
+    if (!position) return null;
+
+    return (
+      <Marker position={[position.lat, position.lng]} icon={userIcon}>
+        <Popup>You are here</Popup>
+      </Marker>
+    );
+  }
 
   return (
     <div className="h-screen w-screen flex flex-col overflow-hidden">
@@ -96,6 +122,7 @@ export default function MapView() {
           className="h-full w-full"
         >
           <MapFixer />
+          <LocationService onLocation={(coords) => setUserLocation(coords)} />
           <TileLayer
             url="https://tile.jawg.io/af06ba33-f6df-4eb7-80a2-a81fd169c187/{z}/{x}/{y}.png?access-token=eaVAmuImVyZ14hXBuyquvFt5SXhDdfbcULGgL3DBhSbqntHqoFRbNxmHhsUMHKwo"
             attribution='Map data © <a href="https://www.openstreetmap.org/">OpenStreetMap</a> & <a href="https://www.jawg.io">Jawg</a>'
@@ -186,6 +213,7 @@ export default function MapView() {
                 </Popup>
               </Marker>
             ))}
+          <UserMarker position={userLocation} />
         </MapContainer>
       </div>
     </div>

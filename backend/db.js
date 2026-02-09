@@ -23,6 +23,17 @@ db.prepare(`
   )
 `).run();
 
+// --- Create user_locations table if not exists (for storing user geolocation pings)
+db.prepare(`
+  CREATE TABLE IF NOT EXISTS user_locations (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    userId TEXT,
+    latitude REAL NOT NULL,
+    longitude REAL NOT NULL,
+    timestamp TEXT NOT NULL
+  )
+`).run();
+
 // --- Create users table if not exists
 db.prepare(`
   CREATE TABLE IF NOT EXISTS users (

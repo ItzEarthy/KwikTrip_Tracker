@@ -12,6 +12,42 @@ router.get("/locations", (req, res) => {
   res.json(locations);
 });
 
+// --- POST user location (accepts { userId?, latitude, longitude, timestamp? }) ---
+router.post("/user-locations", express.json(), (req, res) => {
+  const { userId, latitude, longitude, timestamp } = req.body;
+
+  if (typeof latitude !== "number" || typeof longitude !== "number") {
+    return res.status(400).json({ error: "latitude and longitude are required and must be numbers." });
+  }
+
+  const ts = timestamp || new Date().toISOString();
+  const stmt = db.prepare(
+    "INSERT INTO user_locations (userId, latitude, longitude, timestamp) VALUES (?, ?, ?, ?)"
+  );
+  const result = stmt.run(userId || null, latitude, longitude, ts);
+  res.json({ success: true, id: result.lastInsertRowid });
+});
+
+// --- GET user locations (optionally filter by `userId`, provide `limit`) ---
+router.get("/user-locations", (req, res) => {
+  const { userId, limit } = req.query;
+  let q = "SELECT id, userId, latitude, longitude, timestamp FROM user_locations";
+  const params = [];
+  if (userId) {
+    q += " WHERE userId = ?";
+    params.push(userId);
+  }
+  q += " ORDER BY timestamp DESC";
+  if (limit) {
+    q += " LIMIT ?";
+    params.push(parseInt(limit, 10) || 100);
+  }
+
+  const stmt = db.prepare(q);
+  const rows = params.length ? stmt.all(...params) : stmt.all();
+  res.json(rows);
+});
+
 // --- GET visits for a user ---
 router.get("/visits/:userId", (req, res) => {
   const { userId } = req.params;
@@ -166,6 +202,14 @@ function requireAdmin(req, res, next) {
   }
   next();
 }
+
+// --- Admin: GET recent user locations ---
+router.get("/admin/user-locations", requireAdmin, (req, res) => {
+  const rows = db
+    .prepare("SELECT id, userId, latitude, longitude, timestamp FROM user_locations ORDER BY timestamp DESC LIMIT 1000")
+    .all();
+  res.json(rows);
+});
 
 // --- GET all users (admin only) ---
 router.get("/admin/users", requireAdmin, (req, res) => {
