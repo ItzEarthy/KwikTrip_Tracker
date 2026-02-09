@@ -1,6 +1,6 @@
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import L from "leaflet";
 import Filters from "./Filters";
 import FriendsList from "./FriendsList";
@@ -84,10 +84,14 @@ export default function MapView() {
 
   function UserMarker({ position }) {
     const map = useMap();
+    const didCenterRef = useRef(false);
     useEffect(() => {
       if (!position) return;
-      // center map on user when location updates
-      map.setView([position.lat, position.lng], 13);
+      // center map on user only on first location fix
+      if (!didCenterRef.current) {
+        map.setView([position.lat, position.lng], 13);
+        didCenterRef.current = true;
+      }
     }, [position, map]);
 
     if (!position) return null;
@@ -96,6 +100,24 @@ export default function MapView() {
       <Marker position={[position.lat, position.lng]} icon={userIcon}>
         <Popup>You are here</Popup>
       </Marker>
+    );
+  }
+
+  function RecenterControl({ position }) {
+    const map = useMap();
+    if (!position) return null;
+
+    return (
+      <div
+        style={{ position: "absolute", top: 10, right: 10, zIndex: 1000 }}
+      >
+        <button
+          className="bg-white bg-opacity-90 text-black px-3 py-1 rounded shadow"
+          onClick={() => map.setView([position.lat, position.lng], map.getZoom() || 13)}
+        >
+          ⤢ Center
+        </button>
+      </div>
     );
   }
 
@@ -123,6 +145,7 @@ export default function MapView() {
         >
           <MapFixer />
           <LocationService onLocation={(coords) => setUserLocation(coords)} />
+          <RecenterControl position={userLocation} />
           <TileLayer
             url="https://tile.jawg.io/af06ba33-f6df-4eb7-80a2-a81fd169c187/{z}/{x}/{y}.png?access-token=eaVAmuImVyZ14hXBuyquvFt5SXhDdfbcULGgL3DBhSbqntHqoFRbNxmHhsUMHKwo"
             attribution='Map data © <a href="https://www.openstreetmap.org/">OpenStreetMap</a> & <a href="https://www.jawg.io">Jawg</a>'
