@@ -38,6 +38,11 @@ export default function UserProfile() {
       return;
     }
 
+    // Confirm irreversible action
+    if (!window.confirm("Are you sure you want to reset your password? This action cannot be undone.")) {
+      return;
+    }
+
     try {
       const res = await fetch(`${API_BASE}/users/${userId}/reset-password`, {
         method: "POST",
