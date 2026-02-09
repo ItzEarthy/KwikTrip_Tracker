@@ -40,7 +40,7 @@ export default function LocationService({ onLocation, watch = true }) {
           const now = Date.now();
           const prev = lastPosRef.current;
           const moved = prev ? haversineMeters(prev, coords) : Infinity;
-          if (moved >= 25 || now - (lastSentRef.current || 0) > 15000) {
+          if (moved >= 25 || now - (lastSentRef.current || 0) > 60000) {
             lastPosRef.current = coords;
             onLocation?.(coords);
             postLocation(coords);

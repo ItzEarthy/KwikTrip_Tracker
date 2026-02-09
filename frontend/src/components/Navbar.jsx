@@ -10,7 +10,7 @@ export default function Navbar({
   return (
     <header className="navbar app-header flex items-center justify-between px-4">
       <button
-        onClick={onBack || (() => navigate(-1))}
+        onClick={onBack || (() => navigate("/"))}
         className="text-white font-bold text-lg bg-transparent border-none"
         style={{ background: "transparent", fontSize: "1.2rem" }}
         aria-label="Back"

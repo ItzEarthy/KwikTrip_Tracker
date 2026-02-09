@@ -58,7 +58,7 @@ export default function App() {
         element={
           <Landing
             user={user}
-            onEnterMap={() => navigate("/map")}
+            onEnterMap={() => { localStorage.setItem("mode", "self"); navigate("/map"); }}
             onEnterFriends={() => navigate("/friends")}
             onEnterFriendManagement={() => navigate("/friend-management")}
             onEnterProfile={() => navigate("/profile")}

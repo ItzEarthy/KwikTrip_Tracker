@@ -1,6 +1,7 @@
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import { useEffect, useState, useRef, useCallback } from "react";
+import { useParams } from "react-router-dom";
 import L from "leaflet";
 import Filters from "./Filters";
 import FriendsList from "./FriendsList";
@@ -50,7 +51,10 @@ const userIcon = new L.Icon({
 });
 
 export default function MapView() {
-  const mode = localStorage.getItem("mode") || "self";
+  // mode can be 'self' or 'friend' (persisted in localStorage)
+  const routeParams = useParams();
+  const friendIdParam = routeParams?.friendId;
+  const mode = localStorage.getItem("mode") || (friendIdParam ? "friend" : "self");
   const [filter, setFilter] = useState({
     status: "all",
     state: "all",
@@ -58,9 +62,7 @@ export default function MapView() {
   });
   const [locations, setLocations] = useState([]);
   const [visits, setVisits] = useState([]);
-  const [selectedUserId, setSelectedUserId] = useState(
-    localStorage.getItem("selectedUserId") || localStorage.getItem("userId")
-  );
+  const [selectedUserId, setSelectedUserId] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
 
   const handleLocationUpdate = useCallback((coords) => {
@@ -71,6 +73,27 @@ export default function MapView() {
     fetch(`${API_BASE}/locations`)
       .then((res) => res.json())
       .then(setLocations);
+
+    // Determine the selected user (priority: route param -> stored selected -> self)
+    const storedSelected = localStorage.getItem("selectedUserId");
+    const selfId = localStorage.getItem("userId");
+
+    // helper to keep state + localStorage in sync
+    const selectUser = (id, newMode) => {
+      if (!id) return;
+      const sid = String(id);
+      setSelectedUserId(sid);
+      localStorage.setItem("selectedUserId", sid);
+      if (newMode) localStorage.setItem("mode", newMode);
+    };
+
+    if (friendIdParam) {
+      selectUser(friendIdParam, "friend");
+    } else if (localStorage.getItem("mode") === "friend" && storedSelected) {
+      selectUser(storedSelected, "friend");
+    } else if (selfId) {
+      selectUser(selfId, "self");
+    }
   }, []);
 
   useEffect(() => {
