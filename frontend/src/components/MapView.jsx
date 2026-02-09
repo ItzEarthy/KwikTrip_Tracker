@@ -201,15 +201,68 @@ export default function MapView() {
                     <div>
                       <strong>{loc.name}</strong>
                       <br />
-                      {loc.address}, {loc.city}, {loc.state}
+                      {loc.address}
+                      <br />
+                      {loc.city}, {loc.state} {loc.zip}
+                      {loc.phone && (
+                        <>
+                          <br />
+                          📞 {loc.phone}
+                        </>
+                      )}
                     </div>
+
+                    {/* Amenities Section */}
+                    {loc.amenities && (
+                      <div className="text-sm">
+                        <strong>Amenities:</strong>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {loc.amenities.gas && (
+                            <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded text-xs">
+                              ⛽ Gas
+                            </span>
+                          )}
+                          {loc.amenities.diesel && (
+                            <span className="bg-green-100 text-green-800 px-2 py-0.5 rounded text-xs">
+                              🚛 Diesel
+                            </span>
+                          )}
+                          {loc.amenities.carWash && (
+                            <span className="bg-purple-100 text-purple-800 px-2 py-0.5 rounded text-xs">
+                              🚗 Car Wash
+                            </span>
+                          )}
+                          {loc.amenities.e85 && (
+                            <span className="bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded text-xs">
+                              🌽 E85
+                            </span>
+                          )}
+                          {loc.amenities.def && (
+                            <span className="bg-gray-100 text-gray-800 px-2 py-0.5 rounded text-xs">
+                              💧 DEF
+                            </span>
+                          )}
+                          {loc.amenities.cng && (
+                            <span className="bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded text-xs">
+                              🔋 CNG
+                            </span>
+                          )}
+                          {loc.amenities.lng && (
+                            <span className="bg-teal-100 text-teal-800 px-2 py-0.5 rounded text-xs">
+                              ⚡ LNG
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
                     {isVisited(loc.storeNumber) ? (
                       <div className="text-green-600 font-semibold">
                         ✅ Already Visited
                       </div>
                     ) : !isFriend ? (
                       <button
-                        className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded"
+                        className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded w-full"
                         onClick={() => {
                           const userId = localStorage.getItem("userId");
                           if (!userId) {
@@ -223,7 +276,7 @@ export default function MapView() {
                             body: JSON.stringify({
                               storeNumber: loc.storeNumber,
                               userId: userId,
-                              visitDate: new Date().toISOString(), // ✅ Add this line
+                              visitDate: new Date().toISOString(),
                             }),
                           })
                             .then((res) => res.json())
@@ -235,12 +288,12 @@ export default function MapView() {
                             });
                         }}
                       >
-                        ➕ Mark Visited
+                        ✅ Check In / Mark Visited
                       </button>
                     ) : null}
                     {isVisited(loc.storeNumber) && !isFriend && (
                       <button
-                        className="bg-gray-300 hover:bg-gray-400 text-black px-3 py-1 rounded"
+                        className="bg-gray-300 hover:bg-gray-400 text-black px-3 py-1 rounded w-full"
                         onClick={() => {
                           const userId = localStorage.getItem("userId");
                           fetch(`/api/visits/${userId}/${loc.storeNumber}`, {
