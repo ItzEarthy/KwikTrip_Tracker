@@ -1,6 +1,6 @@
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import L from "leaflet";
 import Filters from "./Filters";
 import FriendsList from "./FriendsList";
@@ -62,6 +62,10 @@ export default function MapView() {
     localStorage.getItem("selectedUserId") || localStorage.getItem("userId")
   );
   const [userLocation, setUserLocation] = useState(null);
+
+  const handleLocationUpdate = useCallback((coords) => {
+    setUserLocation(coords);
+  }, []);
 
   useEffect(() => {
     fetch(`${API_BASE}/locations`)
@@ -144,7 +148,7 @@ export default function MapView() {
           className="h-full w-full"
         >
           <MapFixer />
-          <LocationService onLocation={(coords) => setUserLocation(coords)} />
+          <LocationService onLocation={handleLocationUpdate} />
           <RecenterControl position={userLocation} />
           <TileLayer
             url="https://tile.jawg.io/af06ba33-f6df-4eb7-80a2-a81fd169c187/{z}/{x}/{y}.png?access-token=eaVAmuImVyZ14hXBuyquvFt5SXhDdfbcULGgL3DBhSbqntHqoFRbNxmHhsUMHKwo"
