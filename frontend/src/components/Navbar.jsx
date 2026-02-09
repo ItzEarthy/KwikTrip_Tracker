@@ -27,20 +27,7 @@ export default function Navbar({
         <h1 className="text-white text-xl font-bold">{title}</h1>
       </div>
 
-      <button
-        onClick={
-          onLogout ||
-          (() => {
-            localStorage.clear();
-            window.location.reload();
-          })
-        }
-        className="text-white font-bold text-lg bg-transparent border-none"
-        style={{ background: "transparent", fontSize: "1.2rem" }}
-        aria-label="Logout"
-      >
-        ⏻
-      </button>
+      {/* logout removed from top header */}
     </header>
   );
 }

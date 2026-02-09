@@ -68,9 +68,6 @@ export default function App() {
           >
             📋 History
           </button>
-          <button onClick={logout} className="fixed top-4 right-4 btn">
-            Log out
-          </button>
           <VisitHistory open={showHistory} onClose={() => setShowHistory(false)} />
         </>
       } />
@@ -83,9 +80,6 @@ export default function App() {
         <>
           {localStorage.setItem("mode", "friend")}
           <MapView />
-          <button onClick={logout} className="fixed top-4 right-4 btn">
-            Log out
-          </button>
         </>
       } />
 
