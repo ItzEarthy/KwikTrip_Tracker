@@ -8,6 +8,7 @@ import Register from "./components/Register";
 import Landing from "./components/Landing";
 import VisitHistory from "./components/VisitHistory";
 import FriendDashboard from "./components/FriendDashboard";
+import FriendManagement from "./components/FriendManagement";
 import UserProfile from "./components/UserProfile";
 import AdminPortal from "./components/AdminPortal";
 
@@ -59,6 +60,7 @@ export default function App() {
             user={user}
             onEnterMap={() => navigate("/map")}
             onEnterFriends={() => navigate("/friends")}
+            onEnterFriendManagement={() => navigate("/friend-management")}
             onEnterProfile={() => navigate("/profile")}
             onEnterAdmin={() => navigate("/admin")}
             onOpenHistory={() => setShowHistory(true)}
@@ -78,6 +80,8 @@ export default function App() {
       <Route path="/friends" element={
         <FriendDashboard onSelectUser={(id) => navigate(`/map/${id}`)} />
       } />
+
+      <Route path="/friend-management" element={<FriendManagement />} />
 
       <Route path="/map/:friendId" element={
         <>

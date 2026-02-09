@@ -2,3 +2,4 @@
 backend/package-lock.json
 package-lock.json
 /backend/data
+/frontend/node_modules/

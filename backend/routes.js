@@ -277,4 +277,154 @@ router.delete("/admin/users/:id", requireAdmin, (req, res) => {
   res.json({ success: result.changes > 0 });
 });
 
+// ============================================
+// FRIEND MANAGEMENT ROUTES
+// ============================================
+
+// --- GET friends for a user ---
+router.get("/friends/:userId", (req, res) => {
+  const { userId } = req.params;
+  
+  const friends = db.prepare(`
+    SELECT 
+      u.id, 
+      u.nickname,
+      f.status,
+      f.requestedAt,
+      f.id as friendshipId
+    FROM friends f
+    JOIN users u ON (
+      (f.userId = ? AND u.id = f.friendId) OR 
+      (f.friendId = ? AND u.id = f.userId)
+    )
+    WHERE (f.userId = ? OR f.friendId = ?) AND f.status = 'accepted'
+  `).all(userId, userId, userId, userId);
+  
+  res.json(friends);
+});
+
+// --- GET pending friend requests (incoming) ---
+router.get("/friend-requests/:userId", (req, res) => {
+  const { userId } = req.params;
+  
+  const requests = db.prepare(`
+    SELECT 
+      u.id, 
+      u.nickname,
+      f.requestedAt,
+      f.id as friendshipId
+    FROM friends f
+    JOIN users u ON u.id = f.userId
+    WHERE f.friendId = ? AND f.status = 'pending'
+  `).all(userId);
+  
+  res.json(requests);
+});
+
+// --- GET sent friend requests (outgoing) ---
+router.get("/friend-requests-sent/:userId", (req, res) => {
+  const { userId } = req.params;
+  
+  const requests = db.prepare(`
+    SELECT 
+      u.id, 
+      u.nickname,
+      f.requestedAt,
+      f.id as friendshipId
+    FROM friends f
+    JOIN users u ON u.id = f.friendId
+    WHERE f.userId = ? AND f.status = 'pending'
+  `).all(userId);
+  
+  res.json(requests);
+});
+
+// --- POST send friend request ---
+router.post("/friend-request", express.json(), (req, res) => {
+  const { userId, friendId } = req.body;
+  
+  if (!userId || !friendId) {
+    return res.status(400).json({ error: "userId and friendId are required." });
+  }
+  
+  if (userId === friendId) {
+    return res.status(400).json({ error: "Cannot add yourself as a friend." });
+  }
+  
+  // Check if friendship already exists
+  const existing = db.prepare(
+    "SELECT * FROM friends WHERE (userId = ? AND friendId = ?) OR (userId = ? AND friendId = ?)"
+  ).get(userId, friendId, friendId, userId);
+  
+  if (existing) {
+    return res.status(400).json({ error: "Friend request already exists." });
+  }
+  
+  const result = db.prepare(
+    "INSERT INTO friends (userId, friendId, status, requestedAt) VALUES (?, ?, 'pending', ?)"
+  ).run(userId, friendId, new Date().toISOString());
+  
+  res.json({ success: true, id: result.lastInsertRowid });
+});
+
+// --- PUT accept/decline friend request ---
+router.put("/friend-request/:id", express.json(), (req, res) => {
+  const { id } = req.params;
+  const { action } = req.body; // 'accept' or 'decline'
+  
+  if (action === 'accept') {
+    const result = db.prepare(
+      "UPDATE friends SET status = 'accepted' WHERE id = ?"
+    ).run(id);
+    res.json({ success: result.changes > 0 });
+  } else if (action === 'decline') {
+    const result = db.prepare("DELETE FROM friends WHERE id = ?").run(id);
+    res.json({ success: result.changes > 0 });
+  } else {
+    res.status(400).json({ error: "Invalid action. Use 'accept' or 'decline'." });
+  }
+});
+
+// --- DELETE remove friend ---
+router.delete("/friends/:friendshipId", (req, res) => {
+  const { friendshipId } = req.params;
+  
+  const result = db.prepare("DELETE FROM friends WHERE id = ?").run(friendshipId);
+  res.json({ success: result.changes > 0 });
+});
+
+// --- GET search users (exclude self and existing friends) ---
+router.get("/users/search/:userId", (req, res) => {
+  const { userId } = req.params;
+  const { query } = req.query;
+  
+  let sql = `
+    SELECT u.id, u.nickname 
+    FROM users u
+    WHERE u.id != ?
+  `;
+  
+  const params = [userId];
+  
+  if (query) {
+    sql += " AND (u.nickname LIKE ? OR u.username LIKE ?)";
+    params.push(`%${query}%`, `%${query}%`);
+  }
+  
+  sql += " LIMIT 20";
+  
+  const users = db.prepare(sql).all(...params);
+  
+  // Filter out existing friends/requests
+  const existingFriends = db.prepare(`
+    SELECT friendId as id FROM friends WHERE userId = ?
+    UNION
+    SELECT userId as id FROM friends WHERE friendId = ?
+  `).all(userId, userId).map(f => f.id);
+  
+  const filtered = users.filter(u => !existingFriends.includes(u.id));
+  
+  res.json(filtered);
+});
+
 module.exports = router;

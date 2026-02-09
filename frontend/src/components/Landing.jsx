@@ -6,6 +6,7 @@ export default function Landing({
   user,
   onEnterMap,
   onEnterFriends,
+  onEnterFriendManagement,
   onEnterProfile,
   onEnterAdmin,
   onOpenHistory,
@@ -67,6 +68,9 @@ export default function Landing({
           <button className="btn" onClick={onOpenHistory}>📋 Visit History</button>
           <button className="btn" onClick={onEnterFriends}>
             👥 Friends Dashboard
+          </button>
+          <button className="btn" onClick={onEnterFriendManagement}>
+            🤝 Manage Friends
           </button>
           <button className="btn" onClick={onEnterProfile}>
             ⚙️ Profile Settings

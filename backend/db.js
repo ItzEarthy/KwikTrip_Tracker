@@ -62,4 +62,16 @@ if (!existingAdmin) {
   console.log("✅ Default admin account created (username: admin, password: admin)");
 }
 
+// --- Create friends table if not exists
+db.prepare(`
+  CREATE TABLE IF NOT EXISTS friends (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    userId INTEGER NOT NULL,
+    friendId INTEGER NOT NULL,
+    status TEXT NOT NULL DEFAULT 'pending',
+    requestedAt TEXT NOT NULL,
+    UNIQUE(userId, friendId)
+  )
+`).run();
+
 module.exports = db;
