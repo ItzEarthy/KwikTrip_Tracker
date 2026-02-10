@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Routes, Route, useNavigate, Navigate } from "react-router-dom";
 
@@ -13,6 +12,7 @@ import UserProfile from "./components/UserProfile";
 import AdminPortal from "./components/AdminPortal";
 
 import "./styles/theme.css";
+import { FocusProvider } from "./contexts/FocusContext";
 
 export default function App() {
   const [user, setUser] = useState(null);
@@ -51,7 +51,7 @@ export default function App() {
   }
 
   return (
-    <>
+    <FocusProvider>
       <Routes>
       <Route
         path="/"
@@ -103,6 +103,6 @@ export default function App() {
         📋 History
       </button>
       <VisitHistory open={showHistory} onClose={() => setShowHistory(false)} />
-    </>
+    </FocusProvider>
   );
 }

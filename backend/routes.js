@@ -696,6 +696,110 @@ router.get("/locations/:storeNumber/activity", (req, res) => {
   res.json({ storeNumber, reviews: processedReviews });
 });
 
+// --- GET /locations/activity-batch (efficient summary for many stores) ---
+router.get("/locations/activity-batch", (req, res) => {
+  const { storeNumbers, requesterId } = req.query;
+
+  let stores = [];
+  if (storeNumbers) {
+    stores = String(storeNumbers).split(",").map(s => s.trim()).filter(Boolean);
+  }
+
+  if (stores.length === 0) return res.json({});
+
+  // Get friends of the requester
+  const friendIds = requesterId ? db.prepare(`
+    SELECT 
+      CASE 
+        WHEN userId = ? THEN friendId
+        ELSE userId
+      END as friendId
+    FROM friends
+    WHERE (userId = ? OR friendId = ?) AND status = 'accepted'
+  `).all(requesterId, requesterId, requesterId).map(f => f.friendId) : [];
+
+  try {
+    const placeholders = stores.map(() => '?').join(',');
+    const rows = db.prepare(`
+      SELECT storeNumber, userId
+      FROM reviews
+      WHERE storeNumber IN (${placeholders})
+    `).all(...stores);
+
+    const result = {};
+    stores.forEach(s => { result[s] = { reviewedByUser: false, friendReviewed: false }; });
+
+    rows.forEach(r => {
+      const sn = String(r.storeNumber);
+      if (!result[sn]) result[sn] = { reviewedByUser: false, friendReviewed: false };
+      if (requesterId && String(r.userId) === String(requesterId)) {
+        result[sn].reviewedByUser = true;
+      }
+      if (!result[sn].friendReviewed && friendIds.length && friendIds.map(String).includes(String(r.userId))) {
+        result[sn].friendReviewed = true;
+      }
+    });
+
+    res.json(result);
+  } catch (err) {
+    console.error('activity-batch error', err);
+    res.status(500).json({});
+  }
+});
+
+// Also support POST with JSON body to avoid huge query strings for many storeNumbers
+router.post("/locations/activity-batch", express.json(), (req, res) => {
+  const { storeNumbers, requesterId } = req.body || {};
+
+  let stores = [];
+  if (Array.isArray(storeNumbers)) {
+    stores = storeNumbers.map(s => String(s).trim()).filter(Boolean);
+  } else if (storeNumbers) {
+    stores = String(storeNumbers).split(",").map(s => s.trim()).filter(Boolean);
+  }
+
+  if (stores.length === 0) return res.json({});
+
+  // Get friends of the requester
+  const friendIds = requesterId ? db.prepare(`
+    SELECT 
+      CASE 
+        WHEN userId = ? THEN friendId
+        ELSE userId
+      END as friendId
+    FROM friends
+    WHERE (userId = ? OR friendId = ?) AND status = 'accepted'
+  `).all(requesterId, requesterId, requesterId).map(f => f.friendId) : [];
+
+  try {
+    const placeholders = stores.map(() => '?').join(',');
+    const rows = db.prepare(`
+      SELECT storeNumber, userId
+      FROM reviews
+      WHERE storeNumber IN (${placeholders})
+    `).all(...stores);
+
+    const result = {};
+    stores.forEach(s => { result[s] = { reviewedByUser: false, friendReviewed: false }; });
+
+    rows.forEach(r => {
+      const sn = String(r.storeNumber);
+      if (!result[sn]) result[sn] = { reviewedByUser: false, friendReviewed: false };
+      if (requesterId && String(r.userId) === String(requesterId)) {
+        result[sn].reviewedByUser = true;
+      }
+      if (!result[sn].friendReviewed && friendIds.length && friendIds.map(String).includes(String(r.userId))) {
+        result[sn].friendReviewed = true;
+      }
+    });
+
+    res.json(result);
+  } catch (err) {
+    console.error('activity-batch (POST) error', err);
+    res.status(500).json({});
+  }
+});
+
 // --- GET /admin/settings (Get app settings) ---
 router.get("/admin/settings", requireAdmin, (req, res) => {
   const settings = db.prepare("SELECT key, value FROM app_settings").all();

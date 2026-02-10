@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useFocus } from "../contexts/FocusContext";
 
 const API_BASE = `${window.location.origin}/api`;
 
@@ -124,6 +125,7 @@ const ReviewCard = ({ review, onEdit }) => {
 export default function StoreActivity({ storeNumber, onClose, onEdit, onBringTo }) {
   const [activity, setActivity] = useState(null);
   const [loading, setLoading] = useState(true);
+  const { requestFocus } = useFocus();
 
   useEffect(() => {
     const userId = localStorage.getItem("userId");
@@ -167,9 +169,10 @@ export default function StoreActivity({ storeNumber, onClose, onEdit, onBringTo 
         <div className="flex items-center gap-2">
           <button
             onClick={() => {
-              if (onBringTo) onBringTo(storeNumber);
-              else {
-                localStorage.setItem('focusStoreNumber', storeNumber);
+              if (onBringTo) {
+                onBringTo(storeNumber);
+              } else {
+                requestFocus(storeNumber);
                 window.location.href = '/map';
               }
             }}

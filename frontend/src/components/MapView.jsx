@@ -1,7 +1,7 @@
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import { useEffect, useState, useRef, useCallback } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useLocation, useNavigate } from "react-router-dom";
 import L from "leaflet";
 import Filters from "./Filters";
 import FriendsList from "./FriendsList";
@@ -11,6 +11,7 @@ import ClusteredMarkers from "./ClusteredMarkers";
 import Modal from "./Modal";
 import ReviewForm from "./ReviewForm";
 import StoreActivity from "./StoreActivity";
+import { useFocus } from "../contexts/FocusContext";
 const API_BASE = `${window.location.origin}/api`;
 
 import Navbar from "./Navbar";
@@ -73,9 +74,7 @@ export default function MapView() {
   const userCenteredRef = useRef(false);
 
   // Search state
-  const [searchQuery, setSearchQuery] = useState("");
-  const [searchResults, setSearchResults] = useState([]);
-  const [showResults, setShowResults] = useState(false);
+  
 
   // Review modal state
   const [reviewModal, setReviewModal] = useState({
@@ -126,6 +125,12 @@ export default function MapView() {
       .then((res) => res.json())
       .then(setVisits);
   }, [selectedUserId]);
+
+  useEffect(() => {
+    if (focus) {
+      focusStore(focus.storeNumber);
+    }
+  }, [focus]);
 
   const handleCheckIn = async (storeNumber) => {
     const userId = localStorage.getItem("userId");
@@ -196,43 +201,7 @@ export default function MapView() {
   const isFriend =
     mode === "friend" && selectedUserId !== localStorage.getItem("userId");
 
-  // Search helpers
-  const computeMatches = (q) => {
-    if (!q || !q.trim()) return [];
-    const s = q.trim().toLowerCase();
-
-    // if numeric-only, prefer storeNumber or zip matches
-    const numeric = /^[0-9]+$/.test(s);
-
-    const matches = locations.filter((loc) => {
-      if (numeric) {
-        if (String(loc.storeNumber).startsWith(s)) return true;
-        if (String(loc.zip).startsWith(s)) return true;
-      }
-
-      if (loc.city && loc.city.toLowerCase().includes(s)) return true;
-      if (String(loc.storeNumber).toLowerCase().includes(s)) return true;
-      if (loc.zip && String(loc.zip).toLowerCase().includes(s)) return true;
-
-      return false;
-    });
-
-    return matches.slice(0, 10);
-  };
-
-  const onSearchChange = (e) => {
-    const q = e.target.value;
-    setSearchQuery(q);
-    if (!q || !q.trim()) {
-      setSearchResults([]);
-      setShowResults(false);
-      return;
-    }
-
-    const results = computeMatches(q);
-    setSearchResults(results);
-    setShowResults(results.length > 0);
-  };
+  
 
   const openLocationPopup = (loc) => {
     if (!mapInstance || !loc) return;
@@ -244,37 +213,92 @@ export default function MapView() {
       </div>
     `;
 
-    mapInstance.setView([loc.latitude, loc.longitude], 15);
-    L.popup({ maxWidth: 360, className: "kwik-search-popup" })
-      .setLatLng([loc.latitude, loc.longitude])
-      .setContent(html)
-      .openOn(mapInstance);
+    // Ensure numeric coordinates
+    const lat = parseFloat(loc.latitude);
+    const lng = parseFloat(loc.longitude);
 
-    setShowResults(false);
-    setSearchQuery("");
-    setSearchResults([]);
+    // Some environments may have the map not fully ready/laid out when we try to center.
+    // Use whenReady + invalidateSize, then setView and open popup after a short delay.
+    try {
+      mapInstance.whenReady(() => {
+        try {
+          mapInstance.invalidateSize();
+        } catch (e) {}
+        setTimeout(() => {
+          mapInstance.setView([lat, lng], 15);
+          L.popup({ maxWidth: 360, className: "kwik-search-popup" })
+            .setLatLng([lat, lng])
+            .setContent(html)
+            .openOn(mapInstance);
+        }, 120);
+      });
+    } catch (e) {
+      // Fallback: try immediately
+      mapInstance.setView([lat, lng], 15);
+      L.popup({ maxWidth: 360, className: "kwik-search-popup" })
+        .setLatLng([lat, lng])
+        .setContent(html)
+        .openOn(mapInstance);
+    }
+
+    // clear any previous search UI state (search removed)
   };
 
   // If another component requested a focus on a store, handle it once locations are loaded
   useEffect(() => {
-    const runFocus = () => {
-      try {
-        const focus = localStorage.getItem("focusStoreNumber");
-        if (!focus) return;
-        const loc = locations.find((l) => String(l.storeNumber) === String(focus));
-        if (loc) {
-          openLocationPopup(loc);
-        }
-      } finally {
-        localStorage.removeItem("focusStoreNumber");
+    const focusKey = "focusStoreNumber";
+    const focus = localStorage.getItem(focusKey);
+    if (!focus) return;
+
+    // delegate to centralized helper which will retry until ready
+    focusStore(focus);
+  }, [locations, mapInstance]);
+
+  // Also support focusing via a `?focus=<storeNumber>` query param (more reliable when navigating)
+  const location = useLocation();
+  const navigate = useNavigate();
+  // Centralized focus helper: retry until mapInstance and locations are ready
+  const focusStore = (storeNumber) => {
+    if (!storeNumber) return;
+    let attempts = 0;
+    const maxAttempts = 12;
+
+    const attempt = () => {
+      attempts += 1;
+      const loc = locations.find((l) => String(l.storeNumber) === String(storeNumber));
+      if (loc && mapInstance) {
+        openLocationPopup(loc);
+        // cleanup localStorage marker
+        try { localStorage.removeItem('focusStoreNumber'); } catch (e) {}
+        return;
       }
+
+      if (attempts < maxAttempts) setTimeout(attempt, 300);
     };
 
-    // run when locations and mapInstance are ready
-    if (locations && locations.length > 0 && mapInstance) {
-      // short timeout to ensure map has finished initial layout
-      setTimeout(runFocus, 200);
-    }
+    attempt();
+  };
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const focus = params.get("focus");
+    if (!focus) return;
+
+    focusStore(focus);
+    // remove the query param from history
+    try { navigate(location.pathname, { replace: true }); } catch (e) {}
+  }, [location.search, locations, mapInstance, navigate]);
+
+  // Listen for same-window focus requests (dispatched by other components)
+  useEffect(() => {
+    const handler = (e) => {
+      const store = e?.detail || localStorage.getItem('focusStoreNumber');
+      if (!store) return;
+      focusStore(store);
+    };
+
+    window.addEventListener('kwik:focusStore', handler);
+    return () => window.removeEventListener('kwik:focusStore', handler);
   }, [locations, mapInstance]);
 
   function RecenterControl({ position }) {
@@ -327,45 +351,6 @@ export default function MapView() {
           />
         )}
         <div className="flex items-center gap-2">
-          <div className="flex-1">
-            <input
-              placeholder="Search by city, ZIP, or store #"
-              value={searchQuery}
-              onChange={onSearchChange}
-              onFocus={() => setShowResults(searchResults.length > 0)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  if (searchResults.length > 0)
-                    openLocationPopup(searchResults[0]);
-                }
-                if (e.key === "Escape") {
-                  setShowResults(false);
-                }
-              }}
-              className="w-full px-3 py-2 rounded border"
-            />
-            {showResults && searchResults.length > 0 && (
-              <div className="absolute bg-white shadow rounded mt-1 w-full max-h-60 overflow-auto z-50">
-                {searchResults.map((r) => (
-                  <div
-                    key={r.storeNumber}
-                    onClick={() => openLocationPopup(r)}
-                    className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
-                  >
-                    <div className="font-medium">
-                      {r.name} — {r.city}, {r.state} {r.zip}
-                    </div>
-                    <div className="text-sm text-gray-600">
-                      Store #{r.storeNumber}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div style={{ width: 12 }} />
-
           <Filters locations={locations} visits={visits} onFilter={setFilter} />
         </div>
       </div>

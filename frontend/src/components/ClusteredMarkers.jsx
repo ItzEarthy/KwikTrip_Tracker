@@ -7,31 +7,39 @@ import "leaflet.markercluster/dist/MarkerCluster.Default.css";
 
 const API_BASE = `${window.location.origin}/api`;
 
-const createIcon = (type) => {
+const createIcon = ({ type, reviewedByUser = false, friendReviewed = false } = {}) => {
+  // Small user dot
   if (type === "user") {
-    return new L.Icon({
-      iconUrl:
-        'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28"><circle cx="14" cy="14" r="10" fill="%23007bff"/></svg>',
-      iconSize: [28, 28],
-      iconAnchor: [14, 14],
-    });
+    const size = 28;
+    const html = `
+      <div style="width:${size}px;height:${size}px;position:relative;display:inline-block">
+        <svg xmlns='http://www.w3.org/2000/svg' width='${size}' height='${size}' viewBox='0 0 28 28'><circle cx='14' cy='14' r='10' fill='%23007bff'/></svg>
+      </div>`;
+
+    return L.divIcon({ html, className: '', iconSize: L.point(size, size), iconAnchor: L.point(14, 14) });
   }
 
-  if (type === "visited") {
-    return new L.Icon({
-      iconUrl: "/icons/travel.png",
-      iconSize: [40, 40],
-      iconAnchor: [20, 40],
-      popupAnchor: [0, -36],
-    });
-  }
+  // Base image for location/visited
+  const baseUrl = type === 'visited' ? '/icons/travel.png' : '/icons/location.png';
+  const size = 40;
+  const anchor = [20, 40];
 
-  return new L.Icon({
-    iconUrl: "/icons/location.png",
-    iconSize: [40, 40],
-    iconAnchor: [20, 40],
-    popupAnchor: [0, -36],
-  });
+  // Icons for overlays
+  const starSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="#facc15"><path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.788 1.402 8.17L12 18.896l-7.336 3.872 1.402-8.17L.132 9.21l8.2-1.192z"/></svg>';
+  const shineSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="#60a5fa"><path d="M12 2l1.8 4.2L18 8l-4.2 1.8L12 14l-1.8-4.2L6 8l4.2-1.8z"/></svg>';
+
+  // Overlay positions adjusted to be inside the marker bounds and visible
+  const overlayStar = reviewedByUser ? `<div style="position:absolute;top:4px;right:4px;width:18px;height:18px;z-index:1000">${starSvg}</div>` : '';
+  const overlayShine = !reviewedByUser && friendReviewed ? `<div style="position:absolute;top:6px;right:6px;width:18px;height:18px;z-index:1000;opacity:0.95">${shineSvg}</div>` : '';
+  const html = `
+    <div style="width:${size}px;height:${size}px;position:relative;display:inline-block">
+      <img src="${baseUrl}" style="width:${size}px;height:${size}px;display:block"/>
+      ${overlayStar}
+      ${overlayShine}
+    </div>
+  `;
+
+  return L.divIcon({ html, className: '', iconSize: L.point(size, size), iconAnchor: L.point(anchor[0], anchor[1]), popupAnchor: L.point(0, -36) });
 };
 
 function buildPopupHtml(loc, visited, visitId = null) {
@@ -192,60 +200,114 @@ export default function ClusteredMarkers({ locations = [], visits = [], onCheckI
       visits.some((v) => v.storeNumber === loc.storeNumber)
     );
 
-    const markers = unvisitedLocations.map((loc) => {
-      const marker = L.marker([loc.latitude, loc.longitude], {
-        icon: createIcon("unvisited"),
-        zIndexOffset: -1000,
-      });
+    // Fetch activity for all locations in a single batch request to reduce server load
+    const loggedInId = localStorage.getItem('userId');
+    const activityCache = {};
 
-      const popupContent = buildPopupHtml(loc, false);
-      const popup = L.popup({ maxWidth: 360, className: "kwik-popup" }).setContent(popupContent);
-      
-      marker.bindPopup(popup);
-      
-      // Load stats when popup opens
-      marker.on('popupopen', async () => {
-        const statsDiv = document.getElementById(`stats-${loc.storeNumber}`);
-        if (statsDiv) {
-          statsDiv.innerHTML = '<div style="font-size:12px;color:#6b7280">Loading...</div>';
-          const statsHtml = await loadStoreStats(loc.storeNumber);
-          statsDiv.innerHTML = statsHtml;
+    (async () => {
+      const allStoreNumbers = Array.from(new Set([...unvisitedLocations.map(l => String(l.storeNumber)), ...visitedLocations.map(l => String(l.storeNumber))]));
+
+      // Prefer requesting only stores currently visible on the map to limit payload
+      let storeNumbersToRequest = allStoreNumbers;
+      try {
+        if (map && map.getBounds) {
+          const bounds = map.getBounds();
+          const visible = locations.filter(l => {
+            const lat = parseFloat(l.latitude);
+            const lng = parseFloat(l.longitude);
+            if (!isFinite(lat) || !isFinite(lng)) return false;
+            return bounds.contains([lat, lng]);
+          }).map(l => String(l.storeNumber));
+
+          if (visible.length > 0) {
+            storeNumbersToRequest = Array.from(new Set(visible));
+          }
         }
-      });
+      } catch (e) {
+        // ignore bounds errors and fall back to allStoreNumbers
+        storeNumbersToRequest = allStoreNumbers;
+      }
 
-      return marker;
-    });
-
-    markers.forEach((m) => clusterGroup.addLayer(m));
-
-    // Add visited locations as standalone markers (not part of clusters)
-    visitedLocations.forEach((loc) => {
-      const visitMatch = visits.find(v => v.storeNumber === loc.storeNumber);
-      const visitId = visitMatch?.id || 1;
-      
-      const marker = L.marker([loc.latitude, loc.longitude], {
-        icon: createIcon("visited"),
-        zIndexOffset: -1000,
-      });
-      
-      const popupContent = buildPopupHtml(loc, true, visitId);
-      const popup = L.popup({ maxWidth: 360, className: "kwik-popup" }).setContent(popupContent);
-      
-      marker.bindPopup(popup);
-      
-      // Load stats when popup opens
-      marker.on('popupopen', async () => {
-        const statsDiv = document.getElementById(`stats-${loc.storeNumber}`);
-        if (statsDiv) {
-          statsDiv.innerHTML = '<div style="font-size:12px;color:#6b7280">Loading...</div>';
-          const statsHtml = await loadStoreStats(loc.storeNumber);
-          statsDiv.innerHTML = statsHtml;
+      if (storeNumbersToRequest.length > 0 && loggedInId) {
+        try {
+          const res = await fetch(`${API_BASE}/locations/activity-batch`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ requesterId: loggedInId, storeNumbers: storeNumbersToRequest }),
+          });
+          if (res.ok) {
+            const data = await res.json();
+            // data shape: { storeNumber: { reviewedByUser: bool, friendReviewed: bool }, ... }
+            Object.assign(activityCache, data);
+          }
+        } catch (e) {
+          // ignore and fall back to defaults
         }
+      }
+
+      // Ensure defaults for any missing entries
+      allStoreNumbers.forEach(sn => {
+        if (!activityCache[sn]) activityCache[sn] = { reviewedByUser: false, friendReviewed: false };
       });
-      
-      marker.addTo(map);
-      directMarkers.push(marker);
-    });
+
+      // Create clustered markers for unvisited locations
+      const markers = unvisitedLocations.map((loc) => {
+        const flags = activityCache[String(loc.storeNumber)] || { reviewedByUser: false, friendReviewed: false };
+        const marker = L.marker([loc.latitude, loc.longitude], {
+          icon: createIcon({ type: 'unvisited', reviewedByUser: flags.reviewedByUser, friendReviewed: flags.friendReviewed }),
+          zIndexOffset: -1000,
+        });
+
+        const popupContent = buildPopupHtml(loc, false);
+        const popup = L.popup({ maxWidth: 360, className: "kwik-popup" }).setContent(popupContent);
+        
+        marker.bindPopup(popup);
+        
+        // Load stats when popup opens
+        marker.on('popupopen', async () => {
+          const statsDiv = document.getElementById(`stats-${loc.storeNumber}`);
+          if (statsDiv) {
+            statsDiv.innerHTML = '<div style="font-size:12px;color:#6b7280">Loading...</div>';
+            const statsHtml = await loadStoreStats(loc.storeNumber);
+            statsDiv.innerHTML = statsHtml;
+          }
+        });
+
+        return marker;
+      });
+
+      markers.forEach((m) => clusterGroup.addLayer(m));
+
+      // Add visited locations as standalone markers (not part of clusters)
+      visitedLocations.forEach((loc) => {
+        const visitMatch = visits.find(v => v.storeNumber === loc.storeNumber);
+        const visitId = visitMatch?.id || 1;
+        const flags = activityCache[String(loc.storeNumber)] || { reviewedByUser: false, friendReviewed: false };
+        
+        const marker = L.marker([loc.latitude, loc.longitude], {
+          icon: createIcon({ type: 'visited', reviewedByUser: flags.reviewedByUser, friendReviewed: flags.friendReviewed }),
+          zIndexOffset: -1000,
+        });
+        
+        const popupContent = buildPopupHtml(loc, true, visitId);
+        const popup = L.popup({ maxWidth: 360, className: "kwik-popup" }).setContent(popupContent);
+        
+        marker.bindPopup(popup);
+        
+        // Load stats when popup opens
+        marker.on('popupopen', async () => {
+          const statsDiv = document.getElementById(`stats-${loc.storeNumber}`);
+          if (statsDiv) {
+            statsDiv.innerHTML = '<div style="font-size:12px;color:#6b7280">Loading...</div>';
+            const statsHtml = await loadStoreStats(loc.storeNumber);
+            statsDiv.innerHTML = statsHtml;
+          }
+        });
+        
+        marker.addTo(map);
+        directMarkers.push(marker);
+      });
+    })();
 
     map.addLayer(clusterGroup);
 

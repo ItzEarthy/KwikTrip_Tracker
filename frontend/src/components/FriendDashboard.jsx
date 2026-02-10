@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useFocus } from "../contexts/FocusContext";
 const API_BASE = `${window.location.origin}/api`;
 import Navbar from "./Navbar";
 import StoreStats from "./StoreStats";
 
 export default function FriendsDashboard({ onSelectUser }) {
+  const { requestFocus } = useFocus();
   const navigate = useNavigate();
   const [friends, setFriends] = useState([]);
   const [visits, setVisits] = useState({});
@@ -55,49 +57,71 @@ export default function FriendsDashboard({ onSelectUser }) {
   };
 
   useEffect(() => {
-    const activities = [];
-    friends.forEach((friend) => {
-      fetch(`${API_BASE}/visits/${friend.id}`)
-        .then((res) => res.json())
-        .then((data) => {
-          // store the raw visits array so we can compute count and lastActive
-          setVisits((prev) => ({ ...prev, [friend.id]: data }));
-          
-          // Collect recent activity from all friends
-          if (data && data.length > 0) {
-            const recentVisit = data[0];
-            const activityObj = {
-              friendId: friend.id,
-              friendNickname: friend.nickname,
-              storeNumber: recentVisit.storeNumber,
-              visitDate: recentVisit.visitDate,
-              isNew: data.length === 1, // First visit to any store
-              thumbnail: null,
-            };
+    if (!friends || friends.length === 0) {
+      setAllFriendActivity([]);
+      return;
+    }
 
-            // try to fetch activity for that store to get a photo thumbnail
-            fetch(`${API_BASE}/locations/${recentVisit.storeNumber}/activity?requesterId=${userId}`)
-              .then((r) => r.json())
-              .then((act) => {
-                if (act && act.reviews && act.reviews.length) {
-                  const r = act.reviews.find((rv) => rv.photos && rv.photos.length > 0);
-                  if (r) activityObj.thumbnail = r.photos[0].filePath;
-                }
-              })
-              .catch(() => {});
+    let cancelled = false;
 
-            activities.push(activityObj);
-          }
-        });
-    });
-    
-    // Update friend activity after a short delay to allow all fetches to complete
-    setTimeout(() => {
-      setAllFriendActivity(activities.sort((a, b) => 
-        new Date(b.visitDate) - new Date(a.visitDate)
-      ).slice(0, 5));
-    }, 1000);
-  }, [friends]);
+    (async () => {
+      try {
+        const activities = await Promise.all(
+          friends.map(async (friend) => {
+            try {
+              const res = await fetch(`${API_BASE}/visits/${friend.id}`);
+              const data = await res.json();
+              // store the raw visits array so we can compute count and lastActive
+              setVisits((prev) => ({ ...prev, [friend.id]: data }));
+
+              if (!data || data.length === 0) return null;
+
+              const recentVisit = data[0];
+
+              // fetch activity for that store (reviews + photos)
+              let reviews = [];
+              try {
+                const actRes = await fetch(
+                  `${API_BASE}/locations/${recentVisit.storeNumber}/activity?requesterId=${userId}`
+                );
+                const act = await actRes.json();
+                if (act && act.reviews) reviews = act.reviews;
+              } catch (err) {
+                // ignore per-store activity failures
+              }
+
+              const allPhotos = reviews.flatMap((rv) => (rv.photos || []).map((p) => p.filePath));
+
+              return {
+                friendId: friend.id,
+                friendNickname: friend.nickname,
+                storeNumber: recentVisit.storeNumber,
+                visitDate: recentVisit.visitDate,
+                isNew: data.length === 1,
+                reviews,
+                photos: allPhotos,
+              };
+            } catch (err) {
+              return null;
+            }
+          })
+        );
+
+        const filtered = activities
+          .filter(Boolean)
+          .sort((a, b) => new Date(b.visitDate) - new Date(a.visitDate))
+          .slice(0, 5);
+
+        if (!cancelled) setAllFriendActivity(filtered);
+      } catch (err) {
+        console.error("Failed to build friend activity:", err);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [friends, userId]);
 
   // Calculate milestone progress
   const getMilestones = () => {
@@ -249,18 +273,31 @@ export default function FriendsDashboard({ onSelectUser }) {
                       </div>
                       <div className="mt-2 flex items-center gap-3">
                         <StoreStats storeNumber={activity.storeNumber} compact />
-                        {activity.thumbnail ? (
-                          <img
-                            src={`${API_BASE}/uploads/${activity.thumbnail}`}
-                            alt="activity photo"
-                            className="w-16 h-16 object-cover rounded border"
-                            onClick={() => window.open(`${API_BASE}/uploads/${activity.thumbnail}`, '_blank')}
-                          />
-                        ) : null}
+                        {activity.photos && activity.photos.length > 0 && (
+                          <div className="flex items-center gap-2">
+                            {activity.photos.slice(0, 3).map((p, i) => (
+                              <img
+                                key={i}
+                                src={`${API_BASE}/uploads/${p}`}
+                                alt={`photo ${i + 1}`}
+                                className="w-16 h-16 object-cover rounded border cursor-pointer"
+                                onClick={() => window.open(`${API_BASE}/uploads/${p}`, "_blank")}
+                              />
+                            ))}
+                          </div>
+                        )}
+
+                        {activity.reviews && activity.reviews.length > 0 && (
+                          <div className="ml-2 text-sm text-gray-700">
+                            {activity.reviews.slice(0, 1).map((rv, i) => (
+                              <p key={i} className="truncate max-w-xs">{rv.text || rv.comment || ''}</p>
+                            ))}
+                          </div>
+                        )}
                         <button
                           className="ml-auto px-3 py-1 rounded bg-blue-600 text-white text-sm"
                           onClick={() => {
-                            localStorage.setItem('focusStoreNumber', activity.storeNumber);
+                            requestFocus(activity.storeNumber);
                             navigate('/map');
                           }}
                         >

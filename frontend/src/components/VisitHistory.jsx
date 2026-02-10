@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useFocus } from "../contexts/FocusContext";
 import StoreStats from "./StoreStats";
 const API_BASE = `${window.location.origin}/api`;
 
@@ -8,6 +9,7 @@ export default function VisitHistory({ open, onClose }) {
   const [locations, setLocations] = useState([]);
   const [photosByStore, setPhotosByStore] = useState({});
   const navigate = useNavigate();
+  const { requestFocus } = useFocus();
 
   useEffect(() => {
     if (open) {
@@ -140,7 +142,7 @@ export default function VisitHistory({ open, onClose }) {
                       <button
                         className="px-3 py-1 rounded bg-blue-600 text-white text-sm"
                         onClick={() => {
-                          localStorage.setItem('focusStoreNumber', v.storeNumber);
+                          requestFocus(v.storeNumber);
                           navigate('/map');
                           onClose?.();
                         }}

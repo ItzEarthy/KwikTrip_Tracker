@@ -25,16 +25,27 @@ export default function FriendManagement() {
   // Live search as user types (debounced)
   useEffect(() => {
     const t = setTimeout(() => {
+      if (activeTab !== 'search') return;
+
       if (searchQuery && searchQuery.trim()) {
         searchUsers();
       } else {
-        setSearchResults([]);
+        // when there's no query, show all users (except self and existing friends)
+        loadAllUsers();
       }
     }, 300);
 
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchQuery]);
+
+  // When switching to Search tab, ensure we populate users if empty
+  useEffect(() => {
+    if (activeTab === 'search' && (!searchResults || searchResults.length === 0) && (!searchQuery || !searchQuery.trim())) {
+      loadAllUsers();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab]);
 
   const loadFriends = async (id) => {
     try {
@@ -75,6 +86,23 @@ export default function FriendManagement() {
       setSearchResults(data || []);
     } catch (err) {
       console.error("Failed to search users:", err);
+      setSearchResults([]);
+    }
+  };
+
+  const loadAllUsers = async () => {
+    if (!userId) return;
+    try {
+      const res = await fetch(`${API_BASE}/users`);
+      const data = await res.json();
+
+      // exclude self and existing friends
+      const friendIds = (friends || []).map(f => f.id);
+      const filtered = (data || []).filter(u => String(u.id) !== String(userId) && !friendIds.includes(u.id));
+
+      setSearchResults(filtered.slice(0, 100));
+    } catch (err) {
+      console.error('Failed to load users:', err);
       setSearchResults([]);
     }
   };
