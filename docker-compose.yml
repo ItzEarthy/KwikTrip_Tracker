@@ -1,18 +1,16 @@
 version: "3.9"
-
 services:
   backend:
-    build: ./backend
+    build: https://github.com/ItzEarthy/KwikTrip_Tracker.git#main:backend
     ports:
-      - "3001:3001"
+      - 3001:3001
     volumes:
       - ./backend/data:/app/data
     restart: unless-stopped
-
   frontend:
-    build: ./frontend
+    build: https://github.com/ItzEarthy/KwikTrip_Tracker.git#main:frontend
     ports:
-      - "5173:80"
+      - 5173:80
     depends_on:
       - backend
     restart: unless-stopped

@@ -64,40 +64,43 @@ export default function UserProfile() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4" style={{ background: "var(--brand-bg)" }}>
+    <div style={{ background: "var(--brand-bg)" }} className="min-h-screen">
       <Navbar />
-      <div className="card w-full max-w-md text-center">
-        <h2 className="text-2xl font-bold mb-4" style={{ color: "var(--brand-primary)" }}>
-          Your Profile
-        </h2>
+      <div className="flex items-center justify-center px-4 py-8">
+        <div className="card w-full max-w-md">
+          <div className="p-6 text-left">
+            <h2 className="text-2xl font-bold mb-4" style={{ color: "var(--brand-primary)" }}>
+              Your Profile
+            </h2>
 
-        <div className="mb-4 text-sm text-left">
-          <strong>User ID:</strong>
-          <div className="mt-1 bg-gray-100 p-2 rounded text-xs break-all">{userId}</div>
+            <div className="mb-4 text-sm">
+              <strong>User ID:</strong>
+              <div className="mt-1 bg-gray-100 p-2 rounded text-xs break-all">{userId}</div>
+            </div>
+
+            <div className="mb-4">
+              <label className="block mb-1 font-semibold text-sm">Nickname</label>
+              <input
+                value={nickname}
+                onChange={(e) => setNickname(e.target.value)}
+                className="w-full p-2 border rounded"
+              />
+            </div>
+
+            <button className="btn w-full mb-3" onClick={saveNickname}>
+              Save Nickname
+            </button>
+
+            <button
+              className="btn w-full"
+              style={{ background: "var(--brand-danger)" }}
+              onClick={() => setShowPasswordModal(true)}
+            >
+              Reset Password
+            </button>
+          </div>
         </div>
-
-        <div className="mb-4 text-left">
-          <label className="block mb-1 font-semibold text-sm">Nickname</label>
-          <input
-            value={nickname}
-            onChange={(e) => setNickname(e.target.value)}
-            className="w-full"
-          />
-        </div>
-
-        <button className="btn w-full mb-3" onClick={saveNickname}>
-          Save Nickname
-        </button>
-
-        <button
-          className="btn w-full"
-          style={{ background: "var(--brand-danger)" }}
-          onClick={() => setShowPasswordModal(true)}
-        >
-          Reset Password
-        </button>
       </div>
-
       {showPasswordModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="card w-full max-w-sm bg-white text-center">
