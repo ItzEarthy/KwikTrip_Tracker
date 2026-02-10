@@ -7,6 +7,7 @@ import Filters from "./Filters";
 import FriendsList from "./FriendsList";
 import MapFixer from "./MapFixer";
 import LocationService from "./LocationService";
+import ClusteredMarkers from "./ClusteredMarkers";
 const API_BASE = `${window.location.origin}/api`;
 
 import Navbar from "./Navbar";
@@ -177,145 +178,20 @@ export default function MapView() {
             url="https://tile.jawg.io/af06ba33-f6df-4eb7-80a2-a81fd169c187/{z}/{x}/{y}.png?access-token=eaVAmuImVyZ14hXBuyquvFt5SXhDdfbcULGgL3DBhSbqntHqoFRbNxmHhsUMHKwo"
             attribution='Map data © <a href="https://www.openstreetmap.org/">OpenStreetMap</a> & <a href="https://www.jawg.io">Jawg</a>'
           />
-          {locations
-            .filter((loc) => {
+          {(() => {
+            const filteredLocations = locations.filter((loc) => {
               const visited = isVisited(loc.storeNumber);
 
               if (filter.status === "visited" && !visited) return false;
               if (filter.status === "unvisited" && visited) return false;
-              if (filter.state !== "all" && loc.state !== filter.state)
-                return false;
-              if (filter.city !== "all" && loc.city !== filter.city)
-                return false;
+              if (filter.state !== "all" && loc.state !== filter.state) return false;
+              if (filter.city !== "all" && loc.city !== filter.city) return false;
 
               return true;
-            })
-            .map((loc) => (
-              <Marker
-                key={loc.storeNumber}
-                position={[loc.latitude, loc.longitude]}
-                icon={isVisited(loc.storeNumber) ? visitedIcon : unvisitedIcon}
-              >
-                <Popup>
-                  <div className="space-y-2">
-                    <div>
-                      <strong>{loc.name}</strong>
-                      <br />
-                      {loc.address}
-                      <br />
-                      {loc.city}, {loc.state} {loc.zip}
-                      {loc.phone && (
-                        <>
-                          <br />
-                          📞 {loc.phone}
-                        </>
-                      )}
-                    </div>
+            });
 
-                    {/* Amenities Section */}
-                    {loc.amenities && (
-                      <div className="text-sm">
-                        <strong>Amenities:</strong>
-                        <div className="flex flex-wrap gap-1 mt-1">
-                          {loc.amenities.gas && (
-                            <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded text-xs">
-                              ⛽ Gas
-                            </span>
-                          )}
-                          {loc.amenities.diesel && (
-                            <span className="bg-green-100 text-green-800 px-2 py-0.5 rounded text-xs">
-                              🚛 Diesel
-                            </span>
-                          )}
-                          {loc.amenities.carWash && (
-                            <span className="bg-purple-100 text-purple-800 px-2 py-0.5 rounded text-xs">
-                              🚗 Car Wash
-                            </span>
-                          )}
-                          {loc.amenities.e85 && (
-                            <span className="bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded text-xs">
-                              🌽 E85
-                            </span>
-                          )}
-                          {loc.amenities.def && (
-                            <span className="bg-gray-100 text-gray-800 px-2 py-0.5 rounded text-xs">
-                              💧 DEF
-                            </span>
-                          )}
-                          {loc.amenities.cng && (
-                            <span className="bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded text-xs">
-                              🔋 CNG
-                            </span>
-                          )}
-                          {loc.amenities.lng && (
-                            <span className="bg-teal-100 text-teal-800 px-2 py-0.5 rounded text-xs">
-                              ⚡ LNG
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    )}
-
-                    {isVisited(loc.storeNumber) ? (
-                      <div className="text-green-600 font-semibold">
-                        ✅ Already Visited
-                      </div>
-                    ) : !isFriend ? (
-                      <button
-                        className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded w-full"
-                        onClick={() => {
-                          const userId = localStorage.getItem("userId");
-                          if (!userId) {
-                            alert("No user selected.");
-                            return;
-                          }
-
-                          fetch(`${API_BASE}/visits`, {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({
-                              storeNumber: loc.storeNumber,
-                              userId: userId,
-                              visitDate: new Date().toISOString(),
-                            }),
-                          })
-                            .then((res) => res.json())
-                            .then(() => {
-                              setVisits([
-                                ...visits,
-                                { storeNumber: loc.storeNumber, userId },
-                              ]);
-                            });
-                        }}
-                      >
-                        ✅ Check In / Mark Visited
-                      </button>
-                    ) : null}
-                    {isVisited(loc.storeNumber) && !isFriend && (
-                      <button
-                        className="bg-gray-300 hover:bg-gray-400 text-black px-3 py-1 rounded w-full"
-                        onClick={() => {
-                          const userId = localStorage.getItem("userId");
-                          fetch(`/api/visits/${userId}/${loc.storeNumber}`, {
-                            method: "DELETE",
-                          })
-                            .then((res) => res.json())
-                            .then(() => {
-                              setVisits(
-                                visits.filter(
-                                  (v) => v.storeNumber !== loc.storeNumber
-                                )
-                              );
-                            });
-                        }}
-                      >
-                        ❌ Remove Visit
-                      </button>
-                    )}
-                  </div>
-                </Popup>
-              </Marker>
-            ))}
+            return <ClusteredMarkers locations={filteredLocations} visits={visits} />;
+          })()}
           <UserMarker position={userLocation} />
         </MapContainer>
       </div>

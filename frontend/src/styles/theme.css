@@ -106,6 +106,23 @@ input, select {
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.10);
 }
 
+/* KwikTrip cluster styling */
+.kwik-cluster-icon {
+  display: inline-block;
+  text-align: center;
+  color: #fff;
+  background: linear-gradient(180deg, var(--brand-primary), var(--brand-secondary));
+  border: 3px solid rgba(255,255,255,0.85);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.25);
+  border-radius: 50%;
+  font-weight: 700;
+}
+
+/* make cluster counts readable on small screens */
+@media (max-width: 600px) {
+  .kwik-cluster-icon { font-size: 12px !important; }
+}
+
 /* Responsive tweaks */
 @media (max-width: 600px) {
   .app-header {
