@@ -17978,5 +17978,745 @@
       "def": false,
       "e85": false
     }
+  },
+  {
+    "storeNumber": "1707",
+    "name": "KWIK STAR #1707",
+    "address": "6155 SE DELAWARE AVE",
+    "city": "ANKENY",
+    "state": "IA",
+    "zip": "50021",
+    "phone": "(515) 706-5590",
+    "latitude": 41.68243,
+    "longitude": -93.58073,
+    "amenities": {
+      "carWash": false,
+      "gas": true,
+      "diesel": true,
+      "cng": false,
+      "lng": false,
+      "def": true,
+      "e85": false
+    }
+  },
+  {
+    "storeNumber": "1284",
+    "name": "KWIK STAR #1284",
+    "address": "730 AIRBORNE RD",
+    "city": "DUBUQUE",
+    "state": "IA",
+    "zip": "52003",
+    "phone": "(563) 207-5021",
+    "latitude": 42.47581,
+    "longitude": -90.76726,
+    "amenities": {
+      "carWash": false,
+      "gas": true,
+      "diesel": true,
+      "cng": false,
+      "lng": false,
+      "def": true,
+      "e85": false
+    }
+  },
+  {
+    "storeNumber": "1742",
+    "name": "KWIK STAR #1742",
+    "address": "101 E TRAIL RIDGE AVE",
+    "city": "INDIANOLA",
+    "state": "IA",
+    "zip": "50125",
+    "phone": "(515) 552-7016",
+    "latitude": 41.38352,
+    "longitude": -93.55952,
+    "amenities": {
+      "carWash": true,
+      "gas": true,
+      "diesel": true,
+      "cng": false,
+      "lng": false,
+      "def": true,
+      "e85": false
+    }
+  },
+  {
+    "storeNumber": "1738",
+    "name": "KWIK STAR #1738",
+    "address": "301 S 1ST ST",
+    "city": "KALONA",
+    "state": "IA",
+    "zip": "52247",
+    "phone": "(319) 657-7133",
+    "latitude": 41.48535,
+    "longitude": -91.71585,
+    "amenities": {
+      "carWash": false,
+      "gas": true,
+      "diesel": true,
+      "cng": false,
+      "lng": false,
+      "def": true,
+      "e85": false
+    }
+  },
+  {
+    "storeNumber": "1745",
+    "name": "KWIK STAR #1745",
+    "address": "208 N LINCOLN ST",
+    "city": "KNOXVILLE",
+    "state": "IA",
+    "zip": "50138",
+    "phone": "(641) 205-7021",
+    "latitude": 41.32054,
+    "longitude": -93.11045,
+    "amenities": {
+      "carWash": true,
+      "gas": true,
+      "diesel": true,
+      "cng": false,
+      "lng": false,
+      "def": false,
+      "e85": false
+    }
+  },
+  {
+    "storeNumber": "1735",
+    "name": "KWIK STAR #1735",
+    "address": "705 TALLAHASSE AVE SE",
+    "city": "ORANGE CITY",
+    "state": "IA",
+    "zip": "51041",
+    "phone": "(712) 360-7002",
+    "latitude": 42.99772,
+    "longitude": -96.03498,
+    "amenities": {
+      "carWash": true,
+      "gas": true,
+      "diesel": true,
+      "cng": false,
+      "lng": false,
+      "def": false,
+      "e85": false
+    }
+  },
+  {
+    "storeNumber": "1727",
+    "name": "KWIK STAR #1727",
+    "address": "1510 A AVE W",
+    "city": "OSKALOOSA",
+    "state": "IA",
+    "zip": "52577",
+    "phone": "(641) 672-6008",
+    "latitude": 41.29587,
+    "longitude": -92.66175,
+    "amenities": {
+      "carWash": true,
+      "gas": true,
+      "diesel": true,
+      "cng": false,
+      "lng": false,
+      "def": false,
+      "e85": false
+    }
+  },
+  {
+    "storeNumber": "1717",
+    "name": "KWIK STAR #1717",
+    "address": "2301 WASHINGTON ST",
+    "city": "PELLA",
+    "state": "IA",
+    "zip": "50219",
+    "phone": "(641) 651-7160",
+    "latitude": 41.41187,
+    "longitude": -92.94652,
+    "amenities": {
+      "carWash": false,
+      "gas": true,
+      "diesel": true,
+      "cng": false,
+      "lng": false,
+      "def": true,
+      "e85": false
+    }
+  },
+  {
+    "storeNumber": "1737",
+    "name": "KWIK STAR #1737",
+    "address": "100 LEWIS BLVD S",
+    "city": "SERGEANT BLUFF",
+    "state": "IA",
+    "zip": "51054",
+    "phone": "(712) 904-5000",
+    "latitude": 42.40085,
+    "longitude": -96.35419,
+    "amenities": {
+      "carWash": true,
+      "gas": true,
+      "diesel": true,
+      "cng": false,
+      "lng": false,
+      "def": true,
+      "e85": false
+    }
+  },
+  {
+    "storeNumber": "1918",
+    "name": "KWIK STAR #1918",
+    "address": "401 W VILLAGE DR",
+    "city": "TIFFIN",
+    "state": "IA",
+    "zip": "52340",
+    "phone": "(319) 645-7001",
+    "latitude": 41.6972,
+    "longitude": -91.66687,
+    "amenities": {
+      "carWash": false,
+      "gas": true,
+      "diesel": true,
+      "cng": false,
+      "lng": false,
+      "def": true,
+      "e85": false
+    }
+  },
+  {
+    "storeNumber": "1751",
+    "name": "KWIK TRIP #1751",
+    "address": "501 N LINCOLN RD",
+    "city": "ESCANABA",
+    "state": "MI",
+    "zip": "49829",
+    "phone": "(906) 212-7006",
+    "latitude": 45.75076,
+    "longitude": -87.08037,
+    "amenities": {
+      "carWash": true,
+      "gas": true,
+      "diesel": true,
+      "cng": false,
+      "lng": false,
+      "def": false,
+      "e85": false
+    }
+  },
+  {
+    "storeNumber": "1712",
+    "name": "KWIK TRIP #1712",
+    "address": "648 US 41 W",
+    "city": "ISHPEMING",
+    "state": "MI",
+    "zip": "49849",
+    "phone": "(906) 486-7030",
+    "latitude": 46.50203,
+    "longitude": -87.67541,
+    "amenities": {
+      "carWash": true,
+      "gas": true,
+      "diesel": true,
+      "cng": false,
+      "lng": false,
+      "def": true,
+      "e85": true
+    }
+  },
+  {
+    "storeNumber": "1747",
+    "name": "KWIK TRIP #1747",
+    "address": "7181 NOVOTNY RD",
+    "city": "BAXTER",
+    "state": "MN",
+    "zip": "56401",
+    "phone": "(218) 855-4036",
+    "latitude": 46.37576,
+    "longitude": -94.25086,
+    "amenities": {
+      "carWash": true,
+      "gas": true,
+      "diesel": true,
+      "cng": false,
+      "lng": false,
+      "def": false,
+      "e85": false
+    }
+  },
+  {
+    "storeNumber": "1187",
+    "name": "KWIK TRIP #1187",
+    "address": "17950 MAPLE CT",
+    "city": "DAYTON",
+    "state": "MN",
+    "zip": "55369",
+    "phone": "(763) 204-6996",
+    "latitude": 45.15827,
+    "longitude": -93.50805,
+    "amenities": {
+      "carWash": false,
+      "gas": true,
+      "diesel": true,
+      "cng": false,
+      "lng": false,
+      "def": true,
+      "e85": false
+    }
+  },
+  {
+    "storeNumber": "1253",
+    "name": "KWIK TRIP #1253",
+    "address": "1200 CENTER AVE W",
+    "city": "DILWORTH",
+    "state": "MN",
+    "zip": "56529",
+    "phone": "(218) 227-7010",
+    "latitude": 46.87553,
+    "longitude": -96.71951,
+    "amenities": {
+      "carWash": false,
+      "gas": true,
+      "diesel": true,
+      "cng": false,
+      "lng": false,
+      "def": true,
+      "e85": false
+    }
+  },
+  {
+    "storeNumber": "1775",
+    "name": "KWIK TRIP #1775",
+    "address": "4855 GATEWAY BLVD",
+    "city": "MAPLE PLAIN",
+    "state": "MN",
+    "zip": "55359",
+    "phone": "(763) 204-6938",
+    "latitude": 45.00467,
+    "longitude": -93.64688,
+    "amenities": {
+      "carWash": true,
+      "gas": true,
+      "diesel": true,
+      "cng": false,
+      "lng": false,
+      "def": false,
+      "e85": false
+    }
+  },
+  {
+    "storeNumber": "1275",
+    "name": "KWIK TRIP #1275",
+    "address": "1409 SE MAIN AVE",
+    "city": "MOORHEAD",
+    "state": "MN",
+    "zip": "56560",
+    "phone": "(218) 227-7005",
+    "latitude": 46.85898,
+    "longitude": -96.73685,
+    "amenities": {
+      "carWash": true,
+      "gas": true,
+      "diesel": true,
+      "cng": false,
+      "lng": false,
+      "def": true,
+      "e85": true
+    }
+  },
+  {
+    "storeNumber": "1729",
+    "name": "KWIK TRIP #1729",
+    "address": "1100 30TH AVE S",
+    "city": "MOORHEAD",
+    "state": "MN",
+    "zip": "56560",
+    "phone": "(218) 227-7009",
+    "latitude": 46.84454,
+    "longitude": -96.76219,
+    "amenities": {
+      "carWash": false,
+      "gas": true,
+      "diesel": true,
+      "cng": false,
+      "lng": false,
+      "def": false,
+      "e85": true
+    }
+  },
+  {
+    "storeNumber": "1730",
+    "name": "KWIK TRIP #1730",
+    "address": "630 13TH ST SW",
+    "city": "PINE CITY",
+    "state": "MN",
+    "zip": "55063",
+    "phone": "(320) 591-7000",
+    "latitude": 45.82235,
+    "longitude": -92.97985,
+    "amenities": {
+      "carWash": true,
+      "gas": true,
+      "diesel": true,
+      "cng": false,
+      "lng": false,
+      "def": false,
+      "e85": false
+    }
+  },
+  {
+    "storeNumber": "1757",
+    "name": "KWIK TRIP #1757",
+    "address": "1030 UPPER 144TH ST W",
+    "city": "ROSEMOUNT",
+    "state": "MN",
+    "zip": "55068",
+    "phone": "(651) 404-6037",
+    "latitude": 44.74033,
+    "longitude": -93.08606,
+    "amenities": {
+      "carWash": true,
+      "gas": true,
+      "diesel": true,
+      "cng": false,
+      "lng": false,
+      "def": false,
+      "e85": false
+    }
+  },
+  {
+    "storeNumber": "1272",
+    "name": "KWIK STAR #1272",
+    "address": "4480 CALICO DR S",
+    "city": "FARGO",
+    "state": "ND",
+    "zip": "58104",
+    "phone": "(701) 561-7062",
+    "latitude": 46.83784,
+    "longitude": -96.86144,
+    "amenities": {
+      "carWash": true,
+      "gas": true,
+      "diesel": true,
+      "cng": false,
+      "lng": false,
+      "def": false,
+      "e85": true
+    }
+  },
+  {
+    "storeNumber": "1749",
+    "name": "KWIK STAR #1749",
+    "address": "2530 12TH AVE S",
+    "city": "FARGO",
+    "state": "ND",
+    "zip": "58103",
+    "phone": "(701) 561-7074",
+    "latitude": 46.86336,
+    "longitude": -96.82028,
+    "amenities": {
+      "carWash": false,
+      "gas": true,
+      "diesel": true,
+      "cng": false,
+      "lng": false,
+      "def": false,
+      "e85": true
+    }
+  },
+  {
+    "storeNumber": "1759",
+    "name": "KWIK STAR #1759",
+    "address": "309 SE 10TH ST",
+    "city": "MADISON",
+    "state": "SD",
+    "zip": "57042",
+    "phone": "(605) 291-7013",
+    "latitude": 43.99274,
+    "longitude": -97.11003,
+    "amenities": {
+      "carWash": true,
+      "gas": true,
+      "diesel": true,
+      "cng": false,
+      "lng": false,
+      "def": true,
+      "e85": true
+    }
+  },
+  {
+    "storeNumber": "1732",
+    "name": "KWIK TRIP #1732",
+    "address": "1027 W MASON ST",
+    "city": "GREEN BAY",
+    "state": "WI",
+    "zip": "54303",
+    "phone": "(920) 940-7009",
+    "latitude": 44.51514,
+    "longitude": -88.04107,
+    "amenities": {
+      "carWash": true,
+      "gas": true,
+      "diesel": true,
+      "cng": false,
+      "lng": false,
+      "def": false,
+      "e85": false
+    }
+  },
+  {
+    "storeNumber": "1294",
+    "name": "KWIK TRIP #1294",
+    "address": "1900 CENTER AVE",
+    "city": "JANESVILLE",
+    "state": "WI",
+    "zip": "53546",
+    "phone": "(608) 758-4529",
+    "latitude": 42.65101,
+    "longitude": -89.03185,
+    "amenities": {
+      "carWash": true,
+      "gas": true,
+      "diesel": true,
+      "cng": false,
+      "lng": false,
+      "def": false,
+      "e85": true
+    }
+  },
+  {
+    "storeNumber": "1150",
+    "name": "KT #1150 LACROSSE SE BKRM SCO",
+    "address": "1813 KRAMER ST",
+    "city": "LA CROSSE",
+    "state": "WI",
+    "zip": "54603",
+    "phone": "",
+    "latitude": 43.84964,
+    "longitude": -91.22648,
+    "amenities": {
+      "carWash": false,
+      "gas": false,
+      "diesel": false,
+      "cng": false,
+      "lng": false,
+      "def": false,
+      "e85": false
+    }
+  },
+  {
+    "storeNumber": "800",
+    "name": "VENDING",
+    "address": "2025 KWIK TRIP WAY",
+    "city": "LA CROSSE",
+    "state": "WI",
+    "zip": "54603",
+    "phone": "",
+    "latitude": 43.85175,
+    "longitude": -91.22671,
+    "amenities": {
+      "carWash": false,
+      "gas": false,
+      "diesel": false,
+      "cng": false,
+      "lng": false,
+      "def": false,
+      "e85": false
+    }
+  },
+  {
+    "storeNumber": "1195",
+    "name": "KT #1195 LACROSSE DC BKRM SCO",
+    "address": "2025 KWIK TRIP WAY",
+    "city": "LA CROSSE",
+    "state": "WI",
+    "zip": "54603",
+    "phone": "",
+    "latitude": 43.85243,
+    "longitude": -91.22579,
+    "amenities": {
+      "carWash": false,
+      "gas": false,
+      "diesel": false,
+      "cng": false,
+      "lng": false,
+      "def": false,
+      "e85": false
+    }
+  },
+  {
+    "storeNumber": "1175",
+    "name": "KT #1175 LACROSSE KITCHENS BKRM SCO",
+    "address": "2200 PALACE ST",
+    "city": "LA CROSSE",
+    "state": "WI",
+    "zip": "54603",
+    "phone": "(608) 793-6017",
+    "latitude": 43.85411,
+    "longitude": -91.22308,
+    "amenities": {
+      "carWash": false,
+      "gas": false,
+      "diesel": false,
+      "cng": false,
+      "lng": false,
+      "def": false,
+      "e85": false
+    }
+  },
+  {
+    "storeNumber": "1265",
+    "name": "KT #1265 LACROSSE FLEET SERVICE BKRM SCO",
+    "address": "2202 KWIK TRIP WAY",
+    "city": "LA CROSSE",
+    "state": "WI",
+    "zip": "54603",
+    "phone": "",
+    "latitude": 43.85034,
+    "longitude": -91.22371,
+    "amenities": {
+      "carWash": false,
+      "gas": false,
+      "diesel": false,
+      "cng": false,
+      "lng": false,
+      "def": false,
+      "e85": false
+    }
+  },
+  {
+    "storeNumber": "1262",
+    "name": "KT #1262 LACROSSE TRUCK WASH",
+    "address": "2010 KWIK TRIP WAY",
+    "city": "LA CROSSE",
+    "state": "WI",
+    "zip": "54603",
+    "phone": "(608) 793-6003",
+    "latitude": 43.85368,
+    "longitude": -91.22863,
+    "amenities": {
+      "carWash": false,
+      "gas": false,
+      "diesel": false,
+      "cng": false,
+      "lng": false,
+      "def": false,
+      "e85": false
+    }
+  },
+  {
+    "storeNumber": "1736",
+    "name": "KWIK TRIP #1736",
+    "address": "400 EAST AVE",
+    "city": "LOMIRA",
+    "state": "WI",
+    "zip": "53048",
+    "phone": "(920) 313-6000",
+    "latitude": 43.58583,
+    "longitude": -88.43282,
+    "amenities": {
+      "carWash": true,
+      "gas": true,
+      "diesel": true,
+      "cng": false,
+      "lng": false,
+      "def": true,
+      "e85": false
+    }
+  },
+  {
+    "storeNumber": "1210",
+    "name": "KWIK TRIP #1210",
+    "address": "4015 TERMINAL DR",
+    "city": "MCFARLAND",
+    "state": "WI",
+    "zip": "53558",
+    "phone": "(608) 579-7050",
+    "latitude": 43.03971,
+    "longitude": -89.30238,
+    "amenities": {
+      "carWash": true,
+      "gas": true,
+      "diesel": true,
+      "cng": false,
+      "lng": false,
+      "def": true,
+      "e85": false
+    }
+  },
+  {
+    "storeNumber": "1740",
+    "name": "KT #1740 ONALASKA CAMPUS BKRM SCO",
+    "address": "2700 MIDWEST DR",
+    "city": "ONALASKA",
+    "state": "WI",
+    "zip": "54650",
+    "phone": "(608) 351-7060",
+    "latitude": 43.87792,
+    "longitude": -91.19171,
+    "amenities": {
+      "carWash": false,
+      "gas": false,
+      "diesel": false,
+      "cng": false,
+      "lng": false,
+      "def": false,
+      "e85": false
+    }
+  },
+  {
+    "storeNumber": "1920",
+    "name": "KWIK TRIP #1920",
+    "address": "1535 SUNSET BEACH RD",
+    "city": "SUAMICO",
+    "state": "WI",
+    "zip": "54173",
+    "phone": "(920) 940-7010",
+    "latitude": 44.63498,
+    "longitude": -88.04399,
+    "amenities": {
+      "carWash": false,
+      "gas": true,
+      "diesel": true,
+      "cng": false,
+      "lng": false,
+      "def": true,
+      "e85": false
+    }
+  },
+  {
+    "storeNumber": "1916",
+    "name": "KT #1916 DEFOREST TRUCK SHOP BKRM SCO",
+    "address": "6037 PEPSI WAY",
+    "city": "WINDSOR",
+    "state": "WI",
+    "zip": "53598",
+    "phone": "(608) 842-9430",
+    "latitude": 43.18741,
+    "longitude": -89.32969,
+    "amenities": {
+      "carWash": false,
+      "gas": false,
+      "diesel": false,
+      "cng": false,
+      "lng": false,
+      "def": false,
+      "e85": false
+    }
+  },
+  {
+    "storeNumber": "1769",
+    "name": "KT #1769 DEFOREST DC BKRM SCO",
+    "address": "6058 PEPSI WAY",
+    "city": "WINDSOR",
+    "state": "WI",
+    "zip": "53598",
+    "phone": "",
+    "latitude": 43.18688,
+    "longitude": -89.32516,
+    "amenities": {
+      "carWash": false,
+      "gas": false,
+      "diesel": false,
+      "cng": false,
+      "lng": false,
+      "def": false,
+      "e85": false
+    }
   }
 ]
