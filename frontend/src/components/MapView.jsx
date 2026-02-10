@@ -151,9 +151,7 @@ export default function MapView() {
 
   return (
     <div className="h-screen w-screen flex flex-col overflow-hidden">
-      <div style={{ paddingTop: "4rem" }}>
-        <Navbar />
-      </div>
+      <Navbar />
 
       <div className="flex-none z-10 p-2 space-y-2">
         {mode === "friend" && (
