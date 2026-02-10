@@ -3,6 +3,38 @@ const router = express.Router();
 const db = require("./db");
 const fs = require("fs");
 const bcrypt = require("bcryptjs");
+const multer = require("multer");
+const path = require("path");
+
+// Configure multer for file uploads
+const uploadDir = path.join(__dirname, "uploads");
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1E9);
+    cb(null, uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({
+  storage: storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = /jpeg|jpg|png|gif|webp/;
+    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = allowedTypes.test(file.mimetype);
+    if (mimetype && extname) {
+      return cb(null, true);
+    }
+    cb(new Error("Only image files are allowed"));
+  }
+});
 
 // Load static location data
 const locations = JSON.parse(fs.readFileSync("locations.json"));
@@ -54,7 +86,7 @@ router.get("/visits/:userId", (req, res) => {
   const visits = db
     .prepare(
       `
-      SELECT visits.storeNumber, visits.visitDate, users.nickname
+      SELECT visits.id, visits.storeNumber, visits.visitDate, users.nickname
       FROM visits
       JOIN users ON users.id = visits.userId
       WHERE visits.userId = ?
@@ -427,4 +459,316 @@ router.get("/users/search/:userId", (req, res) => {
   res.json(filtered);
 });
 
+// ============================================
+// REVIEW & PHOTO ROUTES
+// ============================================
+
+// --- POST /visits/:id/review (Add or update review with optional photos) ---
+router.post("/visits/:id/review", upload.array("photos", 10), async (req, res) => {
+  const { id: visitId } = req.params;
+  const { userId, storeNumber, comment, ratingOverall, ratingClean, ratingStaff, ratingHotspot, ratingBathroom, ratingVibe } = req.body;
+
+  try {
+    // Check if visit exists
+    const visit = db.prepare("SELECT * FROM visits WHERE id = ?").get(visitId);
+    if (!visit) {
+      return res.status(404).json({ error: "Visit not found." });
+    }
+
+    // Verify the visit belongs to this user
+    if (visit.userId != userId) {
+      return res.status(403).json({ error: "Unauthorized." });
+    }
+
+    // Check app settings for photo uploads
+    const allowPhotosSettings = db.prepare("SELECT value FROM app_settings WHERE key = 'allow_photos'").get();
+    const maxPhotosSettings = db.prepare("SELECT value FROM app_settings WHERE key = 'max_photos'").get();
+    
+    const allowPhotos = allowPhotosSettings ? parseInt(allowPhotosSettings.value) === 1 : true;
+    const maxPhotos = maxPhotosSettings ? parseInt(maxPhotosSettings.value) : 3;
+
+    if (!allowPhotos && req.files && req.files.length > 0) {
+      // Delete uploaded files if photos are not allowed
+      req.files.forEach(file => fs.unlinkSync(file.path));
+      return res.status(400).json({ error: "Photo uploads are currently disabled." });
+    }
+
+    // Check if review already exists for this visit
+    const existingReview = db.prepare("SELECT id FROM reviews WHERE visitId = ?").get(visitId);
+
+    let reviewId;
+    if (existingReview) {
+      // Update existing review
+      db.prepare(`
+        UPDATE reviews 
+        SET comment = ?, ratingOverall = ?, ratingClean = ?, ratingStaff = ?, 
+            ratingHotspot = ?, ratingBathroom = ?, ratingVibe = ?, createdAt = ?
+        WHERE visitId = ?
+      `).run(
+        comment || null,
+        ratingOverall || null,
+        ratingClean || null,
+        ratingStaff || null,
+        ratingHotspot || null,
+        ratingBathroom || null,
+        ratingVibe || null,
+        new Date().toISOString(),
+        visitId
+      );
+      reviewId = existingReview.id;
+    } else {
+      // Create new review
+      const result = db.prepare(`
+        INSERT INTO reviews (visitId, userId, storeNumber, comment, ratingOverall, ratingClean, 
+                            ratingStaff, ratingHotspot, ratingBathroom, ratingVibe, createdAt)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `).run(
+        visitId,
+        userId,
+        storeNumber,
+        comment || null,
+        ratingOverall || null,
+        ratingClean || null,
+        ratingStaff || null,
+        ratingHotspot || null,
+        ratingBathroom || null,
+        ratingVibe || null,
+        new Date().toISOString()
+      );
+      reviewId = result.lastInsertRowid;
+    }
+
+    // Handle photo uploads
+    if (req.files && req.files.length > 0) {
+      // Check existing photo count
+      const existingPhotoCount = db.prepare("SELECT COUNT(*) as count FROM photos WHERE reviewId = ?").get(reviewId).count;
+      const availableSlots = maxPhotos - existingPhotoCount;
+
+      if (availableSlots <= 0) {
+        // Delete all uploaded files
+        req.files.forEach(file => fs.unlinkSync(file.path));
+        return res.status(400).json({ error: `Maximum of ${maxPhotos} photos allowed per review.` });
+      }
+
+      const photosToSave = req.files.slice(0, availableSlots);
+      const photosToDelete = req.files.slice(availableSlots);
+
+      // Delete excess files
+      photosToDelete.forEach(file => fs.unlinkSync(file.path));
+
+      // Save photo records
+      const photoInsert = db.prepare(`
+        INSERT INTO photos (reviewId, filePath, uploadedAt)
+        VALUES (?, ?, ?)
+      `);
+
+      photosToSave.forEach(file => {
+        photoInsert.run(reviewId, file.filename, new Date().toISOString());
+      });
+    }
+
+    res.json({ success: true, reviewId });
+  } catch (error) {
+    // Clean up uploaded files on error
+    if (req.files) {
+      req.files.forEach(file => {
+        if (fs.existsSync(file.path)) {
+          fs.unlinkSync(file.path);
+        }
+      });
+    }
+    console.error("Error creating review:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// --- GET /locations/:storeNumber/stats (Public average ratings) ---
+router.get("/locations/:storeNumber/stats", (req, res) => {
+  const { storeNumber } = req.params;
+
+  const stats = db.prepare(`
+    SELECT 
+      COUNT(*) as totalReviews,
+      AVG(ratingOverall) as avgOverall,
+      AVG(ratingClean) as avgClean,
+      AVG(ratingStaff) as avgStaff,
+      AVG(ratingHotspot) as avgHotspot,
+      AVG(ratingBathroom) as avgBathroom,
+      AVG(ratingVibe) as avgVibe
+    FROM reviews
+    WHERE storeNumber = ? AND (
+      ratingOverall IS NOT NULL OR
+      ratingClean IS NOT NULL OR
+      ratingStaff IS NOT NULL OR
+      ratingHotspot IS NOT NULL OR
+      ratingBathroom IS NOT NULL OR
+      ratingVibe IS NOT NULL
+    )
+  `).get(storeNumber);
+
+  res.json({
+    storeNumber,
+    totalReviews: stats.totalReviews || 0,
+    ratings: {
+      overall: stats.avgOverall ? parseFloat(stats.avgOverall.toFixed(2)) : null,
+      clean: stats.avgClean ? parseFloat(stats.avgClean.toFixed(2)) : null,
+      staff: stats.avgStaff ? parseFloat(stats.avgStaff.toFixed(2)) : null,
+      hotspot: stats.avgHotspot ? parseFloat(stats.avgHotspot.toFixed(2)) : null,
+      bathroom: stats.avgBathroom ? parseFloat(stats.avgBathroom.toFixed(2)) : null,
+      vibe: stats.avgVibe ? parseFloat(stats.avgVibe.toFixed(2)) : null
+    }
+  });
+});
+
+// --- GET /locations/:storeNumber/activity (Timeline of reviews with privacy) ---
+router.get("/locations/:storeNumber/activity", (req, res) => {
+  const { storeNumber } = req.params;
+  const { requesterId } = req.query; // User requesting the data
+
+  // Get all reviews for this location
+  const reviews = db.prepare(`
+    SELECT 
+      r.id,
+      r.visitId,
+      r.userId,
+      r.comment,
+      r.ratingOverall,
+      r.ratingClean,
+      r.ratingStaff,
+      r.ratingHotspot,
+      r.ratingBathroom,
+      r.ratingVibe,
+      r.createdAt,
+      u.nickname
+    FROM reviews r
+    JOIN users u ON u.id = r.userId
+    WHERE r.storeNumber = ?
+    ORDER BY r.createdAt DESC
+  `).all(storeNumber);
+
+  // Get friends of the requester
+  const friendIds = requesterId ? db.prepare(`
+    SELECT 
+      CASE 
+        WHEN userId = ? THEN friendId
+        ELSE userId
+      END as friendId
+    FROM friends
+    WHERE (userId = ? OR friendId = ?) AND status = 'accepted'
+  `).all(requesterId, requesterId, requesterId).map(f => f.friendId) : [];
+
+  // Process reviews to apply privacy rules
+  const processedReviews = reviews.map(review => {
+    const isAuthor = requesterId && review.userId == requesterId;
+    const isFriend = friendIds.includes(review.userId);
+    const canSeePrivate = isAuthor || isFriend;
+
+    // Get photos for this review (only if authorized)
+    const photos = canSeePrivate ? db.prepare(`
+      SELECT id, filePath, uploadedAt
+      FROM photos
+      WHERE reviewId = ?
+      ORDER BY uploadedAt ASC
+    `).all(review.id) : [];
+
+    return {
+      id: review.id,
+      visitId: review.visitId,
+      userId: review.userId,
+      nickname: review.nickname,
+      // Ratings are always public
+      ratings: {
+        overall: review.ratingOverall,
+        clean: review.ratingClean,
+        staff: review.ratingStaff,
+        hotspot: review.ratingHotspot,
+        bathroom: review.ratingBathroom,
+        vibe: review.ratingVibe
+      },
+      // Comment and photos only visible to author and friends
+      comment: canSeePrivate ? review.comment : null,
+      photos: canSeePrivate ? photos : [],
+      createdAt: review.createdAt,
+      isPrivate: !canSeePrivate
+    };
+  });
+
+  res.json({ storeNumber, reviews: processedReviews });
+});
+
+// --- GET /admin/settings (Get app settings) ---
+router.get("/admin/settings", requireAdmin, (req, res) => {
+  const settings = db.prepare("SELECT key, value FROM app_settings").all();
+  const settingsObj = {};
+  settings.forEach(s => {
+    settingsObj[s.key] = s.value;
+  });
+  res.json(settingsObj);
+});
+
+// --- PUT /admin/settings (Update app settings) ---
+router.put("/admin/settings", express.json(), requireAdmin, (req, res) => {
+  const { key, value } = req.body;
+
+  if (!key || value === undefined) {
+    return res.status(400).json({ error: "Both key and value are required." });
+  }
+
+  const validKeys = ['max_photos', 'allow_photos'];
+  if (!validKeys.includes(key)) {
+    return res.status(400).json({ error: "Invalid setting key." });
+  }
+
+  const existing = db.prepare("SELECT id FROM app_settings WHERE key = ?").get(key);
+  
+  if (existing) {
+    db.prepare("UPDATE app_settings SET value = ? WHERE key = ?").run(String(value), key);
+  } else {
+    db.prepare("INSERT INTO app_settings (key, value) VALUES (?, ?)").run(key, String(value));
+  }
+
+  res.json({ success: true });
+});
+
+// --- DELETE /admin/photos/:photoId (Remove inappropriate content) ---
+router.delete("/admin/photos/:photoId", requireAdmin, (req, res) => {
+  const { photoId } = req.params;
+
+  const photo = db.prepare("SELECT filePath FROM photos WHERE id = ?").get(photoId);
+  
+  if (!photo) {
+    return res.status(404).json({ error: "Photo not found." });
+  }
+
+  // Delete file from disk
+  const filePath = path.join(uploadDir, photo.filePath);
+  if (fs.existsSync(filePath)) {
+    fs.unlinkSync(filePath);
+  }
+
+  // Delete from database
+  db.prepare("DELETE FROM photos WHERE id = ?").run(photoId);
+
+  res.json({ success: true });
+});
+
+// --- GET /uploads/:filename (Serve uploaded images) ---
+router.get("/uploads/:filename", (req, res) => {
+  const { filename } = req.params;
+  const filePath = path.join(uploadDir, filename);
+  
+  if (!fs.existsSync(filePath)) {
+    return res.status(404).json({ error: "File not found." });
+  }
+  
+  res.sendFile(filePath);
+});
+
 module.exports = router;
+
+// Error handler to ensure JSON responses for unexpected errors (including multer errors)
+router.use((err, req, res, next) => {
+  console.error('Unhandled error in routes:', err && err.stack ? err.stack : err);
+  if (res.headersSent) return next(err);
+  res.status(500).json({ error: err && err.message ? err.message : 'Internal server error' });
+});

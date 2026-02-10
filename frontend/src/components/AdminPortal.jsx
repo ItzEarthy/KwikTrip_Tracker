@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import AdminSettingsPanel from "./AdminSettingsPanel";
 const API_BASE = `${window.location.origin}/api`;
 
 export default function AdminPortal({ user, onBack }) {
@@ -70,8 +71,15 @@ export default function AdminPortal({ user, onBack }) {
       <button className="btn mb-4" onClick={onBack}>
         ⬅ Back
       </button>
-      <div className="space-y-6">
-        {users.map((u) => (
+
+      {/* Settings Panel */}
+      <div className="mb-6">
+        <AdminSettingsPanel userId={user.id} />
+      </div>
+
+      {/* User Management */}
+      <h2 className="text-xl font-bold mb-4">User Management</h2>
+      <div className="space-y-6">{users.map((u) => (
           <div key={u.id} className="card p-4 space-y-2">
             <div><strong>ID:</strong> {u.id}</div>
             <div>

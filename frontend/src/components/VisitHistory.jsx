@@ -1,14 +1,22 @@
 import { useEffect, useState } from "react";
+import StoreStats from "./StoreStats";
 const API_BASE = `${window.location.origin}/api`;
 
 export default function VisitHistory({ open, onClose }) {
   const [visits, setVisits] = useState([]);
+  const [locations, setLocations] = useState([]);
 
   useEffect(() => {
     if (open) {
       const userId = localStorage.getItem("userId");
       console.log("🔍 VisitHistory fetching for userId:", userId);
       if (!userId) return;
+
+      // Load locations map for nicer display
+      fetch(`${API_BASE}/locations`)
+        .then((r) => r.json())
+        .then(setLocations)
+        .catch(() => setLocations([]));
 
       fetch(`${API_BASE}/visits/${userId}`)
         .then((res) => res.json())
@@ -78,9 +86,17 @@ export default function VisitHistory({ open, onClose }) {
                   #{v.storeNumber}
                 </div>
                 <div className="flex-1">
-                  <div className="text-sm font-medium">Kwik Trip #{v.storeNumber}</div>
+                  <div className="text-sm font-medium">
+                    {(() => {
+                      const loc = locations.find(l => String(l.storeNumber) === String(v.storeNumber));
+                      return loc ? loc.name : `Kwik Trip #${v.storeNumber}`;
+                    })()}
+                  </div>
                   <div className="text-xs text-slate-500">
                     {new Date(v.visitDate || v.timestamp).toLocaleString()}
+                  </div>
+                  <div className="mt-2">
+                    <StoreStats storeNumber={v.storeNumber} compact />
                   </div>
                 </div>
               </li>

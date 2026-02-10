@@ -15,17 +15,18 @@ export default function Landing({
 
   useEffect(() => {
     const fetchStats = async () => {
-      const [locationsRes, visitsRes] = await Promise.all([
-        fetch(`${API_BASE}/locations`).then((r) => r.json()),
-        fetch(`${API_BASE}/visits`).then((r) => r.json()),
-      ]);
-
-      const visitedByUser = visitsRes.filter((v) => v.userId === user.id);
-      const total = locationsRes.length;
-      const visited = visitedByUser.length;
-      const percent = total ? Math.round((visited / total) * 100) : 0;
-
-      setStats({ total, visited, percent });
+      try {
+        const resp = await fetch(`${API_BASE}/stats/${user.id}`);
+        const data = await resp.json();
+        // Expecting { total, visited, percent } from server
+        setStats({
+          total: data.total || 0,
+          visited: data.visited || 0,
+          percent: data.percent || 0,
+        });
+      } catch (err) {
+        console.error('Failed to load stats', err);
+      }
     };
 
     fetchStats();

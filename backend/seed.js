@@ -30,4 +30,26 @@ db.prepare(`
   )
 `).run();
 
+// Check if app_settings table exists
+db.prepare(`
+  CREATE TABLE IF NOT EXISTS app_settings (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    key TEXT UNIQUE NOT NULL,
+    value TEXT NOT NULL
+  )
+`).run();
+
+// Seed default app_settings
+const maxPhotosExists = db.prepare(`SELECT * FROM app_settings WHERE key = 'max_photos'`).get();
+if (!maxPhotosExists) {
+  db.prepare(`INSERT INTO app_settings (key, value) VALUES (?, ?)`).run('max_photos', '3');
+  console.log("✅ Seeded app_settings: max_photos = 3");
+}
+
+const allowPhotosExists = db.prepare(`SELECT * FROM app_settings WHERE key = 'allow_photos'`).get();
+if (!allowPhotosExists) {
+  db.prepare(`INSERT INTO app_settings (key, value) VALUES (?, ?)`).run('allow_photos', '1');
+  console.log("✅ Seeded app_settings: allow_photos = 1");
+}
+
 console.log("✅ Database seeded (users + visits tables ready)");

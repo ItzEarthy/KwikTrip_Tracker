@@ -8,6 +8,9 @@ import FriendsList from "./FriendsList";
 import MapFixer from "./MapFixer";
 import LocationService from "./LocationService";
 import ClusteredMarkers from "./ClusteredMarkers";
+import Modal from "./Modal";
+import ReviewForm from "./ReviewForm";
+import StoreActivity from "./StoreActivity";
 const API_BASE = `${window.location.origin}/api`;
 
 import Navbar from "./Navbar";
@@ -55,7 +58,8 @@ export default function MapView() {
   // mode can be 'self' or 'friend' (persisted in localStorage)
   const routeParams = useParams();
   const friendIdParam = routeParams?.friendId;
-  const mode = localStorage.getItem("mode") || (friendIdParam ? "friend" : "self");
+  const mode =
+    localStorage.getItem("mode") || (friendIdParam ? "friend" : "self");
   const [filter, setFilter] = useState({
     status: "all",
     state: "all",
@@ -72,6 +76,18 @@ export default function MapView() {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [showResults, setShowResults] = useState(false);
+
+  // Review modal state
+  const [reviewModal, setReviewModal] = useState({
+    isOpen: false,
+    visitId: null,
+    storeNumber: null,
+    existingReview: null,
+  });
+  const [activityModal, setActivityModal] = useState({
+    isOpen: false,
+    storeNumber: null,
+  });
 
   const handleLocationUpdate = useCallback((coords) => {
     setUserLocation(coords);
@@ -117,7 +133,6 @@ export default function MapView() {
       alert("Please log in to check in.");
       return;
     }
-
     try {
       const response = await fetch(`${API_BASE}/visits`, {
         method: "POST",
@@ -130,16 +145,19 @@ export default function MapView() {
       });
 
       if (response.ok) {
+        const result = await response.json();
         // Refresh visits data without page reload
         const visitsRes = await fetch(`${API_BASE}/visits/${userId}`);
         const visitsData = await visitsRes.json();
         setVisits(visitsData);
-        
-        // Keep popup open to allow bulk adding; show success message instead
-        
+
+        // Open review modal
+        setReviewModal({ isOpen: true, visitId: result.id, storeNumber, existingReview: null });
+
         // Optional: Show a toast notification
-        const notification = document.createElement('div');
-        notification.style.cssText = 'position:fixed;top:80px;left:50%;transform:translateX(-50%);background:#16a34a;color:white;padding:12px 24px;border-radius:8px;z-index:10000;font-weight:600;box-shadow:0 4px 12px rgba(0,0,0,0.15);';
+        const notification = document.createElement("div");
+        notification.style.cssText =
+          "position:fixed;top:80px;left:50%;transform:translateX(-50%);background:#16a34a;color:white;padding:12px 24px;border-radius:8px;z-index:10000;font-weight:600;box-shadow:0 4px 12px rgba(0,0,0,0.15);";
         notification.textContent = `✅ Store #${storeNumber} added!`;
         document.body.appendChild(notification);
         setTimeout(() => notification.remove(), 3000);
@@ -149,6 +167,26 @@ export default function MapView() {
     } catch (error) {
       console.error("Check-in error:", error);
       alert("An error occurred. Please try again.");
+    }
+  };
+
+  const handleAddReview = (visitId, storeNumber) => {
+    setReviewModal({ isOpen: true, visitId, storeNumber, existingReview: null });
+  };
+
+  const handleViewActivity = (storeNumber) => {
+    setActivityModal({ isOpen: true, storeNumber });
+  };
+
+  const handleReviewSuccess = () => {
+    setReviewModal({ isOpen: false, visitId: null, storeNumber: null });
+    // Refresh visits to update any stats
+    const userId = localStorage.getItem("userId");
+    if (userId && selectedUserId) {
+      fetch(`${API_BASE}/visits/${selectedUserId}`)
+        .then((res) => res.json())
+        .then(setVisits)
+        .catch((e) => console.error("Failed to refresh visits:", e));
     }
   };
 
@@ -202,7 +240,7 @@ export default function MapView() {
     const html = `
       <div style="font-family:inherit;max-width:300px">
         <div><strong>${loc.name}</strong><br/>${loc.address}<br/>${loc.city}, ${loc.state} ${loc.zip}</div>
-        ${visited ? '<div style="color:#16a34a;font-weight:600;margin-top:6px">✅ Already Visited</div>' : ''}
+        ${visited ? '<div style="color:#16a34a;font-weight:600;margin-top:6px">✅ Already Visited</div>' : ""}
       </div>
     `;
 
@@ -213,23 +251,21 @@ export default function MapView() {
       .openOn(mapInstance);
 
     setShowResults(false);
-    setSearchQuery('');
+    setSearchQuery("");
     setSearchResults([]);
   };
-
-
 
   function RecenterControl({ position }) {
     const map = useMap();
     if (!position) return null;
 
     return (
-      <div
-        style={{ position: "absolute", top: 10, right: 10, zIndex: 1000 }}
-      >
+      <div style={{ position: "absolute", top: 10, right: 10, zIndex: 1000 }}>
         <button
           className="bg-white bg-opacity-90 text-black px-3 py-1 rounded shadow"
-          onClick={() => map.setView([position.lat, position.lng], map.getZoom() || 13)}
+          onClick={() =>
+            map.setView([position.lat, position.lng], map.getZoom() || 13)
+          }
         >
           ⤢ Center
         </button>
@@ -277,7 +313,8 @@ export default function MapView() {
               onFocus={() => setShowResults(searchResults.length > 0)}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
-                  if (searchResults.length > 0) openLocationPopup(searchResults[0]);
+                  if (searchResults.length > 0)
+                    openLocationPopup(searchResults[0]);
                 }
                 if (e.key === "Escape") {
                   setShowResults(false);
@@ -293,15 +330,19 @@ export default function MapView() {
                     onClick={() => openLocationPopup(r)}
                     className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
                   >
-                    <div className="font-medium">{r.name} — {r.city}, {r.state} {r.zip}</div>
-                    <div className="text-sm text-gray-600">Store #{r.storeNumber}</div>
+                    <div className="font-medium">
+                      {r.name} — {r.city}, {r.state} {r.zip}
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      Store #{r.storeNumber}
+                    </div>
                   </div>
                 ))}
               </div>
             )}
           </div>
 
-          <div style={{width:12}} />
+          <div style={{ width: 12 }} />
 
           <Filters locations={locations} visits={visits} onFilter={setFilter} />
         </div>
@@ -314,9 +355,6 @@ export default function MapView() {
           className="h-full w-full"
           whenCreated={(map) => setMapInstance(map)}
         >
-          <MapFixer />
-          <LocationService onLocation={handleLocationUpdate} />
-          <RecenterControl position={userLocation} />
           <TileLayer
             url="https://tile.jawg.io/af06ba33-f6df-4eb7-80a2-a81fd169c187/{z}/{x}/{y}.png?access-token=eaVAmuImVyZ14hXBuyquvFt5SXhDdfbcULGgL3DBhSbqntHqoFRbNxmHhsUMHKwo"
             attribution='Map data © <a href="https://www.openstreetmap.org/">OpenStreetMap</a> & <a href="https://www.jawg.io">Jawg</a>'
@@ -327,17 +365,67 @@ export default function MapView() {
 
               if (filter.status === "visited" && !visited) return false;
               if (filter.status === "unvisited" && visited) return false;
-              if (filter.state !== "all" && loc.state !== filter.state) return false;
-              if (filter.city !== "all" && loc.city !== filter.city) return false;
+              if (filter.state !== "all" && loc.state !== filter.state)
+                return false;
+              if (filter.city !== "all" && loc.city !== filter.city)
+                return false;
 
               return true;
             });
 
-            return <ClusteredMarkers locations={filteredLocations} visits={visits} onCheckIn={handleCheckIn} />;
+            return (
+              <ClusteredMarkers
+                locations={filteredLocations}
+                visits={visits}
+                onCheckIn={handleCheckIn}
+                onAddReview={handleAddReview}
+                onViewActivity={handleViewActivity}
+              />
+            );
           })()}
           <UserMarkerWrapper position={userLocation} />
+          <RecenterControl position={userLocation} />
+          <LocationService onLocationUpdate={handleLocationUpdate} />
+          <MapFixer />
+          <ResizeMap />
         </MapContainer>
       </div>
+
+      {/* Review Modal */}
+      <Modal
+        isOpen={reviewModal.isOpen}
+          onClose={() =>
+          setReviewModal({ isOpen: false, visitId: null, storeNumber: null, existingReview: null })
+        }
+        title={`Review Store #${reviewModal.storeNumber}`}
+      >
+        <ReviewForm
+          visitId={reviewModal.visitId}
+          storeNumber={reviewModal.storeNumber}
+          existingReview={reviewModal.existingReview}
+          onSuccess={handleReviewSuccess}
+          onCancel={() =>
+            setReviewModal({ isOpen: false, visitId: null, storeNumber: null, existingReview: null })
+          }
+        />
+      </Modal>
+
+      {/* Activity Modal */}
+      <Modal
+        isOpen={activityModal.isOpen}
+        onClose={() => setActivityModal({ isOpen: false, storeNumber: null })}
+        title={`Reviews for Store #${activityModal.storeNumber}`}
+      >
+        <StoreActivity
+          storeNumber={activityModal.storeNumber}
+          onClose={() => setActivityModal({ isOpen: false, storeNumber: null })}
+          onEdit={(review) => {
+            // Open review modal to edit existing review
+            setActivityModal({ isOpen: false, storeNumber: null });
+            setReviewModal({ isOpen: true, visitId: review.visitId, storeNumber: activityModal.storeNumber, existingReview: review });
+          }}
+        />
+      </Modal>
     </div>
   );
 }

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 const API_BASE = `${window.location.origin}/api`;
 import Navbar from "./Navbar";
+import StoreStats from "./StoreStats";
 
 export default function FriendsDashboard({ onSelectUser }) {
   const navigate = useNavigate();
@@ -148,8 +149,18 @@ export default function FriendsDashboard({ onSelectUser }) {
                 <div key={idx} className="flex items-center gap-3 text-sm py-2 border-b last:border-b-0">
                   <span className="text-xl">🏪</span>
                   <div className="flex-1">
-                    <span className="font-medium">Store #{visit.storeNumber}</span>
-                    <span className="text-gray-500 ml-2">• {formatTimeAgo(visit.visitDate)}</span>
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium">
+                        {(() => {
+                          const loc = locations.find(l => String(l.storeNumber) === String(visit.storeNumber));
+                          return loc ? loc.name : `Store #${visit.storeNumber}`;
+                        })()}
+                      </span>
+                      <span className="text-gray-500 ml-2">{formatTimeAgo(visit.visitDate)}</span>
+                    </div>
+                    <div className="mt-2">
+                      <StoreStats storeNumber={visit.storeNumber} compact />
+                    </div>
                   </div>
                 </div>
               ))}
@@ -211,17 +222,20 @@ export default function FriendsDashboard({ onSelectUser }) {
                   <div key={idx} className="flex items-start gap-3 py-2 border-b last:border-b-0">
                     <span className="text-2xl">{activity.isNew ? '🎉' : '📍'}</span>
                     <div className="flex-1">
-                      <p className="text-sm">
-                        <span className="font-semibold text-blue-600">{activity.friendNickname}</span>
-                        {activity.isNew ? (
-                          <span className="text-gray-700"> visited their first store!</span>
-                        ) : (
-                          <span className="text-gray-700"> visited Store #{activity.storeNumber}</span>
-                        )}
-                      </p>
-                      <p className="text-xs text-gray-500 mt-1">
-                        {formatTimeAgo(activity.visitDate)}
-                      </p>
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm">
+                          <span className="font-semibold text-blue-600">{activity.friendNickname}</span>
+                          {activity.isNew ? (
+                            <span className="text-gray-700"> visited their first store!</span>
+                          ) : (
+                            <span className="text-gray-700"> visited Store #{activity.storeNumber}</span>
+                          )}
+                        </p>
+                        <span className="text-xs text-gray-500">{formatTimeAgo(activity.visitDate)}</span>
+                      </div>
+                      <div className="mt-2">
+                        <StoreStats storeNumber={activity.storeNumber} compact />
+                      </div>
                     </div>
                   </div>
                 ))}

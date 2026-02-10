@@ -5,6 +5,8 @@ import "leaflet.markercluster";
 import "leaflet.markercluster/dist/MarkerCluster.css";
 import "leaflet.markercluster/dist/MarkerCluster.Default.css";
 
+const API_BASE = `${window.location.origin}/api`;
+
 const createIcon = (type) => {
   if (type === "user") {
     return new L.Icon({
@@ -32,7 +34,7 @@ const createIcon = (type) => {
   });
 };
 
-function buildPopupHtml(loc, visited) {
+function buildPopupHtml(loc, visited, visitId = null) {
   const phone = loc.phone ? `<br/>📞 ${loc.phone}` : "";
   const amenities = loc.amenities
     ? `<div class=\"text-sm\"><strong>Amenities:</strong><div style=\"display:flex;flex-wrap:wrap;gap:6px;margin-top:6px\">${
@@ -60,17 +62,65 @@ function buildPopupHtml(loc, visited) {
     ? `<button id=\"checkin-btn-${loc.storeNumber}\" style=\"margin-top:8px;background:#dc2626;color:white;padding:8px 10px;border-radius:6px;border:none;width:100%;cursor:pointer\" data-store=\"${loc.storeNumber}\">✅ Check In / Mark Visited</button>`
     : "";
 
+  // Stats placeholder that will be populated async
+  const statsDiv = `<div id=\"stats-${loc.storeNumber}\" style=\"margin-top:8px\"></div>`;
+
+  // Action buttons
+  const actionButtons = visited 
+    ? `<div style=\"display:flex;gap:6px;margin-top:8px\">
+         <button id=\"review-btn-${loc.storeNumber}\" style=\"flex:1;background:#2563eb;color:white;padding:6px 8px;border-radius:6px;border:none;cursor:pointer;font-size:13px\" data-store=\"${loc.storeNumber}\" data-visit=\"${visitId}\">✏️ Add Review</button>
+         <button id=\"activity-btn-${loc.storeNumber}\" style=\"flex:1;background:#059669;color:white;padding:6px 8px;border-radius:6px;border:none;cursor:pointer;font-size:13px\" data-store=\"${loc.storeNumber}\">📋 See Reviews</button>
+       </div>`
+    : `<button id=\"activity-btn-${loc.storeNumber}\" style=\"margin-top:8px;background:#059669;color:white;padding:6px 8px;border-radius:6px;border:none;width:100%;cursor:pointer;font-size:13px\" data-store=\"${loc.storeNumber}\">📋 See Reviews</button>`;
+
   return `
-    <div style="font-family:inherit">
+    <div style="font-family:inherit;max-width:320px">
       <div><strong>${loc.name}</strong><br/>${loc.address}<br/>${loc.city}, ${loc.state} ${loc.zip}${phone}</div>
       ${amenities}
+      ${statsDiv}
       ${visitedHtml}
       ${checkInBtn}
+      ${actionButtons}
     </div>
   `;
 }
 
-export default function ClusteredMarkers({ locations = [], visits = [], onCheckIn }) {
+async function loadStoreStats(storeNumber) {
+  try {
+    const response = await fetch(`${API_BASE}/locations/${storeNumber}/stats`);
+    const data = await response.json();
+    
+    if (data.totalReviews === 0) {
+      return '<div style="font-size:12px;color:#6b7280;font-style:italic;margin-top:4px">No ratings yet</div>';
+    }
+
+    const ratings = data.ratings;
+    const avgRating = ratings.overall || 
+      (Object.values(ratings).filter(r => r !== null).reduce((a, b) => a + b, 0) / 
+       Object.values(ratings).filter(r => r !== null).length);
+
+    if (!avgRating) {
+      return '<div style="font-size:12px;color:#6b7280;font-style:italic">No ratings yet</div>';
+    }
+
+    const stars = '★'.repeat(Math.round(avgRating)) + '☆'.repeat(5 - Math.round(avgRating));
+    
+    return `
+      <div style="background:#f9fafb;padding:8px;border-radius:6px;margin-top:4px">
+        <div style="font-size:11px;font-weight:600;color:#374151;margin-bottom:4px">Overall Store Rating</div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <span style="color:#facc15;font-size:16px">${stars}</span>
+          <span style="font-size:13px;font-weight:600">${avgRating.toFixed(1)}</span>
+          <span style="font-size:11px;color:#6b7280">(${data.totalReviews})</span>
+        </div>
+      </div>
+    `;
+  } catch (error) {
+    return '';
+  }
+}
+
+export default function ClusteredMarkers({ locations = [], visits = [], onCheckIn, onAddReview, onViewActivity }) {
   const map = useMap();
 
   useEffect(() => {
@@ -85,7 +135,7 @@ export default function ClusteredMarkers({ locations = [], visits = [], onCheckI
         const count = cluster.getChildCount();
         const size = count < 10 ? 40 : count < 100 ? 52 : 64;
         const html = `
-          <div class="kwik-cluster-icon" style="width:${size}px;height:${size}px;line-height:${size}px;font-size:${size/3.2}px;display:flex;align-items:center;justify-content:center;background:#dc2626;color:#fff;border-radius:50%;border:2px solid #fff;box-shadow:0 0 6px rgba(0,0,0,0.25)">
+          <div class="kwik-cluster-icon" style="width:${size}px;height:${size}px;line-height:${size}px;font-size:${size/3.2}px;display:flex;align-items:center;justify-content:center;background:#dc2626;color:#fff;border-radius:50%;border:2px solid #fff;box-shadow:0 0 6px rgba(0,0,0,0.25);position:relative;z-index:1000;">
             ${count}
           </div>`;
 
@@ -93,16 +143,39 @@ export default function ClusteredMarkers({ locations = [], visits = [], onCheckI
       },
     });
 
-    // Handle check-in button clicks inside popups using a document-level listener
+    // Handle button clicks inside popups using a document-level listener
     const handlePopupClick = (e) => {
-      // find the closest element that matches our checkin button id pattern
-      const btn = e.target && e.target.closest && e.target.closest('[id^="checkin-btn-"]');
-      if (!btn) return;
-      const storeNumber = btn.getAttribute('data-store');
-      if (storeNumber && onCheckIn) {
-        btn.textContent = '⏳ Checking in...';
-        btn.disabled = true;
-        onCheckIn(storeNumber);
+      // Check-in button
+      const checkinBtn = e.target && e.target.closest && e.target.closest('[id^="checkin-btn-"]');
+      if (checkinBtn) {
+        const storeNumber = checkinBtn.getAttribute('data-store');
+        if (storeNumber && onCheckIn) {
+          checkinBtn.textContent = '⏳ Checking in...';
+          checkinBtn.disabled = true;
+          onCheckIn(storeNumber);
+        }
+        return;
+      }
+
+      // Review button
+      const reviewBtn = e.target && e.target.closest && e.target.closest('[id^="review-btn-"]');
+      if (reviewBtn) {
+        const storeNumber = reviewBtn.getAttribute('data-store');
+        const visitId = reviewBtn.getAttribute('data-visit');
+        if (storeNumber && visitId && onAddReview) {
+          onAddReview(visitId, storeNumber);
+        }
+        return;
+      }
+
+      // Activity button
+      const activityBtn = e.target && e.target.closest && e.target.closest('[id^="activity-btn-"]');
+      if (activityBtn) {
+        const storeNumber = activityBtn.getAttribute('data-store');
+        if (storeNumber && onViewActivity) {
+          onViewActivity(storeNumber);
+        }
+        return;
       }
     };
 
@@ -122,9 +195,24 @@ export default function ClusteredMarkers({ locations = [], visits = [], onCheckI
     const markers = unvisitedLocations.map((loc) => {
       const marker = L.marker([loc.latitude, loc.longitude], {
         icon: createIcon("unvisited"),
+        zIndexOffset: -1000,
       });
 
-      marker.bindPopup(buildPopupHtml(loc, false));
+      const popupContent = buildPopupHtml(loc, false);
+      const popup = L.popup({ maxWidth: 360, className: "kwik-popup" }).setContent(popupContent);
+      
+      marker.bindPopup(popup);
+      
+      // Load stats when popup opens
+      marker.on('popupopen', async () => {
+        const statsDiv = document.getElementById(`stats-${loc.storeNumber}`);
+        if (statsDiv) {
+          statsDiv.innerHTML = '<div style="font-size:12px;color:#6b7280">Loading...</div>';
+          const statsHtml = await loadStoreStats(loc.storeNumber);
+          statsDiv.innerHTML = statsHtml;
+        }
+      });
+
       return marker;
     });
 
@@ -132,10 +220,29 @@ export default function ClusteredMarkers({ locations = [], visits = [], onCheckI
 
     // Add visited locations as standalone markers (not part of clusters)
     visitedLocations.forEach((loc) => {
+      const visitMatch = visits.find(v => v.storeNumber === loc.storeNumber);
+      const visitId = visitMatch?.id || 1;
+      
       const marker = L.marker([loc.latitude, loc.longitude], {
         icon: createIcon("visited"),
+        zIndexOffset: -1000,
       });
-      marker.bindPopup(buildPopupHtml(loc, true));
+      
+      const popupContent = buildPopupHtml(loc, true, visitId);
+      const popup = L.popup({ maxWidth: 360, className: "kwik-popup" }).setContent(popupContent);
+      
+      marker.bindPopup(popup);
+      
+      // Load stats when popup opens
+      marker.on('popupopen', async () => {
+        const statsDiv = document.getElementById(`stats-${loc.storeNumber}`);
+        if (statsDiv) {
+          statsDiv.innerHTML = '<div style="font-size:12px;color:#6b7280">Loading...</div>';
+          const statsHtml = await loadStoreStats(loc.storeNumber);
+          statsDiv.innerHTML = statsHtml;
+        }
+      });
+      
       marker.addTo(map);
       directMarkers.push(marker);
     });
@@ -154,7 +261,8 @@ export default function ClusteredMarkers({ locations = [], visits = [], onCheckI
         });
       } catch (e) {}
     };
-  }, [map, locations, visits, onCheckIn]);
+  }, [map, locations, visits, onCheckIn, onAddReview, onViewActivity]);
 
   return null;
 }
+
