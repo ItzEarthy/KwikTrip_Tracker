@@ -66,13 +66,27 @@ export default function FriendsDashboard({ onSelectUser }) {
           // Collect recent activity from all friends
           if (data && data.length > 0) {
             const recentVisit = data[0];
-            activities.push({
+            const activityObj = {
               friendId: friend.id,
               friendNickname: friend.nickname,
               storeNumber: recentVisit.storeNumber,
               visitDate: recentVisit.visitDate,
               isNew: data.length === 1, // First visit to any store
-            });
+              thumbnail: null,
+            };
+
+            // try to fetch activity for that store to get a photo thumbnail
+            fetch(`${API_BASE}/locations/${recentVisit.storeNumber}/activity?requesterId=${userId}`)
+              .then((r) => r.json())
+              .then((act) => {
+                if (act && act.reviews && act.reviews.length) {
+                  const r = act.reviews.find((rv) => rv.photos && rv.photos.length > 0);
+                  if (r) activityObj.thumbnail = r.photos[0].filePath;
+                }
+              })
+              .catch(() => {});
+
+            activities.push(activityObj);
           }
         });
     });
@@ -233,8 +247,25 @@ export default function FriendsDashboard({ onSelectUser }) {
                         </p>
                         <span className="text-xs text-gray-500">{formatTimeAgo(activity.visitDate)}</span>
                       </div>
-                      <div className="mt-2">
+                      <div className="mt-2 flex items-center gap-3">
                         <StoreStats storeNumber={activity.storeNumber} compact />
+                        {activity.thumbnail ? (
+                          <img
+                            src={`${API_BASE}/uploads/${activity.thumbnail}`}
+                            alt="activity photo"
+                            className="w-16 h-16 object-cover rounded border"
+                            onClick={() => window.open(`${API_BASE}/uploads/${activity.thumbnail}`, '_blank')}
+                          />
+                        ) : null}
+                        <button
+                          className="ml-auto px-3 py-1 rounded bg-blue-600 text-white text-sm"
+                          onClick={() => {
+                            localStorage.setItem('focusStoreNumber', activity.storeNumber);
+                            navigate('/map');
+                          }}
+                        >
+                          Bring me to
+                        </button>
                       </div>
                     </div>
                   </div>

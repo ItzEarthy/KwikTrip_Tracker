@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import StoreStats from "./StoreStats";
 const API_BASE = `${window.location.origin}/api`;
 
 export default function VisitHistory({ open, onClose }) {
   const [visits, setVisits] = useState([]);
   const [locations, setLocations] = useState([]);
+  const [photosByStore, setPhotosByStore] = useState({});
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (open) {
@@ -27,6 +30,29 @@ export default function VisitHistory({ open, onClose }) {
         });
     }
   }, [open]);
+
+  // fetch photos for each visit's store
+  useEffect(() => {
+    if (!open || visits.length === 0) return;
+    const userId = localStorage.getItem('userId');
+    const uniq = Array.from(new Set(visits.map(v => String(v.storeNumber)))).slice(0, 20);
+    uniq.forEach((store) => {
+      fetch(`${API_BASE}/locations/${store}/activity?requesterId=${userId}`)
+        .then((r) => r.json())
+        .then((act) => {
+          if (act && act.reviews) {
+            const photos = [];
+            act.reviews.forEach((rv) => {
+              if (rv.photos && rv.photos.length) {
+                rv.photos.forEach(p => photos.push(p.filePath));
+              }
+            });
+            setPhotosByStore((prev) => ({ ...prev, [store]: photos }));
+          }
+        })
+        .catch(() => {});
+    });
+  }, [open, visits]);
 
   useEffect(() => {
     const onKey = (e) => {
@@ -97,6 +123,31 @@ export default function VisitHistory({ open, onClose }) {
                   </div>
                   <div className="mt-2">
                     <StoreStats storeNumber={v.storeNumber} compact />
+                    {photosByStore[String(v.storeNumber)] && photosByStore[String(v.storeNumber)].length > 0 && (
+                      <div className="flex gap-2 flex-wrap mt-2">
+                        {photosByStore[String(v.storeNumber)].slice(0,4).map((p, idx) => (
+                          <img
+                            key={idx}
+                            src={`${API_BASE}/uploads/${p}`}
+                            alt="visit photo"
+                            className="w-20 h-20 object-cover rounded border cursor-pointer"
+                            onClick={() => window.open(`${API_BASE}/uploads/${p}`, '_blank')}
+                          />
+                        ))}
+                      </div>
+                    )}
+                    <div className="mt-2">
+                      <button
+                        className="px-3 py-1 rounded bg-blue-600 text-white text-sm"
+                        onClick={() => {
+                          localStorage.setItem('focusStoreNumber', v.storeNumber);
+                          navigate('/map');
+                          onClose?.();
+                        }}
+                      >
+                        Bring me to
+                      </button>
+                    </div>
                   </div>
                 </div>
               </li>

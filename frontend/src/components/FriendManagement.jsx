@@ -22,6 +22,20 @@ export default function FriendManagement() {
     }
   }, []);
 
+  // Live search as user types (debounced)
+  useEffect(() => {
+    const t = setTimeout(() => {
+      if (searchQuery && searchQuery.trim()) {
+        searchUsers();
+      } else {
+        setSearchResults([]);
+      }
+    }, 300);
+
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchQuery]);
+
   const loadFriends = async (id) => {
     try {
       const res = await fetch(`${API_BASE}/friends/${id}`);
@@ -54,14 +68,14 @@ export default function FriendManagement() {
 
   const searchUsers = async () => {
     if (!searchQuery.trim() || !userId) return;
-    
+
     try {
       const res = await fetch(`${API_BASE}/users/search/${userId}?query=${encodeURIComponent(searchQuery)}`);
       const data = await res.json();
-      setSearchResults(data);
+      setSearchResults(data || []);
     } catch (err) {
       console.error("Failed to search users:", err);
-      alert("Failed to search users");
+      setSearchResults([]);
     }
   };
 

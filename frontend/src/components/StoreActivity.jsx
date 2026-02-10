@@ -121,7 +121,7 @@ const ReviewCard = ({ review, onEdit }) => {
   );
 };
 
-export default function StoreActivity({ storeNumber, onClose, onEdit }) {
+export default function StoreActivity({ storeNumber, onClose, onEdit, onBringTo }) {
   const [activity, setActivity] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -164,14 +164,28 @@ export default function StoreActivity({ storeNumber, onClose, onEdit }) {
     <div className="store-activity max-h-96 overflow-y-auto p-2">
       <div className="flex items-center justify-between mb-3">
         <h3 className="font-bold text-lg">Recent Reviews</h3>
-        {onClose && (
+        <div className="flex items-center gap-2">
           <button
-            onClick={onClose}
-            className="text-gray-500 hover:text-gray-700 text-xl font-bold"
+            onClick={() => {
+              if (onBringTo) onBringTo(storeNumber);
+              else {
+                localStorage.setItem('focusStoreNumber', storeNumber);
+                window.location.href = '/map';
+              }
+            }}
+            className="px-3 py-1 rounded bg-blue-600 text-white text-sm"
           >
-            ×
+            Bring me to
           </button>
-        )}
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="text-gray-500 hover:text-gray-700 text-xl font-bold"
+            >
+              ×
+            </button>
+          )}
+        </div>
       </div>
       
       {activity.reviews.map((review) => (

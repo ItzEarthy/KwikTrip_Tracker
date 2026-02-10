@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 
-export default function LocationService({ onLocation, watch = true }) {
+export default function LocationService({ onLocation, onLocationUpdate, watch = true }) {
   const [permission, setPermission] = useState("prompt");
   const lastSentRef = useRef(0);
   const lastPosRef = useRef(null);
@@ -19,11 +19,11 @@ export default function LocationService({ onLocation, watch = true }) {
         const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
         lastPosRef.current = coords;
         lastSentRef.current = Date.now();
-        onLocation?.(coords);
+        (onLocation || onLocationUpdate)?.(coords);
         postLocation(coords);
       },
       (err) => {
-        if (err.code === err.PERMISSION_DENIED) setPermission("denied");
+        if (err && err.code === 1) setPermission("denied");
         else setPermission("error");
       },
       { enableHighAccuracy: true, maximumAge: 10000, timeout: 10000 }
@@ -33,23 +33,23 @@ export default function LocationService({ onLocation, watch = true }) {
       // lower-power continuous updates: less accuracy and less frequent
       watcher = navigator.geolocation.watchPosition(
         (pos) => {
-          setPermission("granted");
-          const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+            setPermission("granted");
+            const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
 
-          // throttle updates: only when moved >25m or 15s passed
-          const now = Date.now();
-          const prev = lastPosRef.current;
-          const moved = prev ? haversineMeters(prev, coords) : Infinity;
-          if (moved >= 25 || now - (lastSentRef.current || 0) > 60000) {
-            lastPosRef.current = coords;
-            onLocation?.(coords);
-            postLocation(coords);
-          }
-        },
-        (err) => {
-          if (err.code === err.PERMISSION_DENIED) setPermission("denied");
-        },
-        { enableHighAccuracy: false, maximumAge: 20000, timeout: 10000 }
+            // throttle updates: only when moved >25m or 15s passed
+            const now = Date.now();
+            const prev = lastPosRef.current;
+            const moved = prev ? haversineMeters(prev, coords) : Infinity;
+            if (moved >= 25 || now - (lastSentRef.current || 0) > 60000) {
+              lastPosRef.current = coords;
+              (onLocation || onLocationUpdate)?.(coords);
+              postLocation(coords);
+            }
+          },
+          (err) => {
+            if (err && err.code === 1) setPermission("denied");
+          },
+          { enableHighAccuracy: false, maximumAge: 20000, timeout: 10000 }
       );
     }
 
@@ -97,7 +97,7 @@ export default function LocationService({ onLocation, watch = true }) {
       const c = 2 * Math.atan2(Math.sqrt(x), Math.sqrt(1 - x));
       return R * c;
     }
-  }, [onLocation, watch]);
+  }, [onLocation, onLocationUpdate, watch]);
 
   return null; // invisible helper component
 }

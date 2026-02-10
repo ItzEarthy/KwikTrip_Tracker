@@ -12,6 +12,7 @@ export default function Landing({
   onOpenHistory,
 }) {
   const [stats, setStats] = useState({ total: 0, visited: 0, percent: 0 });
+  const [incomingRequests, setIncomingRequests] = useState(0);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -24,6 +25,14 @@ export default function Landing({
           visited: data.visited || 0,
           percent: data.percent || 0,
         });
+        // fetch incoming friend requests count
+        try {
+          const r = await fetch(`${API_BASE}/friend-requests/${user.id}`);
+          const arr = await r.json();
+          setIncomingRequests(Array.isArray(arr) ? arr.length : 0);
+        } catch (e) {
+          // ignore
+        }
       } catch (err) {
         console.error('Failed to load stats', err);
       }
@@ -70,8 +79,19 @@ export default function Landing({
           <button className="btn" onClick={onEnterFriends}>
             👥 Friends Dashboard
           </button>
-          <button className="btn" onClick={onEnterFriendManagement}>
+          <button className="btn" onClick={onEnterFriendManagement} style={{ position: 'relative' }}>
             🤝 Manage Friends
+            {incomingRequests > 0 && (
+              <span style={{
+                position: 'absolute',
+                right: 10,
+                top: 8,
+                width: 10,
+                height: 10,
+                borderRadius: '50%',
+                background: 'var(--brand-danger)'
+              }} />
+            )}
           </button>
           <button className="btn" onClick={onEnterProfile}>
             ⚙️ Profile Settings

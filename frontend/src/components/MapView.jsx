@@ -255,6 +255,28 @@ export default function MapView() {
     setSearchResults([]);
   };
 
+  // If another component requested a focus on a store, handle it once locations are loaded
+  useEffect(() => {
+    const runFocus = () => {
+      try {
+        const focus = localStorage.getItem("focusStoreNumber");
+        if (!focus) return;
+        const loc = locations.find((l) => String(l.storeNumber) === String(focus));
+        if (loc) {
+          openLocationPopup(loc);
+        }
+      } finally {
+        localStorage.removeItem("focusStoreNumber");
+      }
+    };
+
+    // run when locations and mapInstance are ready
+    if (locations && locations.length > 0 && mapInstance) {
+      // short timeout to ensure map has finished initial layout
+      setTimeout(runFocus, 200);
+    }
+  }, [locations, mapInstance]);
+
   function RecenterControl({ position }) {
     const map = useMap();
     if (!position) return null;
@@ -419,11 +441,16 @@ export default function MapView() {
         <StoreActivity
           storeNumber={activityModal.storeNumber}
           onClose={() => setActivityModal({ isOpen: false, storeNumber: null })}
-          onEdit={(review) => {
+            onEdit={(review) => {
             // Open review modal to edit existing review
             setActivityModal({ isOpen: false, storeNumber: null });
             setReviewModal({ isOpen: true, visitId: review.visitId, storeNumber: activityModal.storeNumber, existingReview: review });
           }}
+            onBringTo={(storeNumber) => {
+                const loc = locations.find((l) => String(l.storeNumber) === String(storeNumber));
+                if (loc) openLocationPopup(loc);
+                setActivityModal({ isOpen: false, storeNumber: null });
+            }}
         />
       </Modal>
     </div>
