@@ -57,7 +57,7 @@ function buildPopupHtml(loc, visited) {
     : "";
 
   const checkInBtn = !visited
-    ? `<button style=\"margin-top:8px;background:#dc2626;color:white;padding:8px 10px;border-radius:6px;border:none;width:100%\" onclick=\"(function(){fetch('/api/visits',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({storeNumber:${loc.storeNumber},userId:localStorage.getItem('userId'),visitDate:new Date().toISOString()})}).then(()=>location.reload())})()\">✅ Check In / Mark Visited</button>`
+    ? `<button id=\"checkin-btn-${loc.storeNumber}\" style=\"margin-top:8px;background:#dc2626;color:white;padding:8px 10px;border-radius:6px;border:none;width:100%;cursor:pointer\" data-store=\"${loc.storeNumber}\">✅ Check In / Mark Visited</button>`
     : "";
 
   return `
@@ -70,7 +70,7 @@ function buildPopupHtml(loc, visited) {
   `;
 }
 
-export default function ClusteredMarkers({ locations = [], visits = [] }) {
+export default function ClusteredMarkers({ locations = [], visits = [], onCheckIn }) {
   const map = useMap();
 
   useEffect(() => {
@@ -93,26 +93,68 @@ export default function ClusteredMarkers({ locations = [], visits = [] }) {
       },
     });
 
-    const markers = locations.map((loc) => {
-      const visited = visits.some((v) => v.storeNumber === loc.storeNumber);
+    // Handle check-in button clicks inside popups using a document-level listener
+    const handlePopupClick = (e) => {
+      // find the closest element that matches our checkin button id pattern
+      const btn = e.target && e.target.closest && e.target.closest('[id^="checkin-btn-"]');
+      if (!btn) return;
+      const storeNumber = btn.getAttribute('data-store');
+      if (storeNumber && onCheckIn) {
+        btn.textContent = '⏳ Checking in...';
+        btn.disabled = true;
+        onCheckIn(storeNumber);
+      }
+    };
+
+    document.addEventListener('click', handlePopupClick);
+
+    // Separate unvisited locations (clustered) from already visited (standalone)
+    const directMarkers = [];
+
+    const unvisitedLocations = locations.filter(
+      (loc) => !visits.some((v) => v.storeNumber === loc.storeNumber)
+    );
+
+    const visitedLocations = locations.filter((loc) =>
+      visits.some((v) => v.storeNumber === loc.storeNumber)
+    );
+
+    const markers = unvisitedLocations.map((loc) => {
       const marker = L.marker([loc.latitude, loc.longitude], {
-        icon: createIcon(visited ? "visited" : "unvisited"),
+        icon: createIcon("unvisited"),
       });
 
-      marker.bindPopup(buildPopupHtml(loc, visited));
+      marker.bindPopup(buildPopupHtml(loc, false));
       return marker;
     });
 
     markers.forEach((m) => clusterGroup.addLayer(m));
 
+    // Add visited locations as standalone markers (not part of clusters)
+    visitedLocations.forEach((loc) => {
+      const marker = L.marker([loc.latitude, loc.longitude], {
+        icon: createIcon("visited"),
+      });
+      marker.bindPopup(buildPopupHtml(loc, true));
+      marker.addTo(map);
+      directMarkers.push(marker);
+    });
+
     map.addLayer(clusterGroup);
 
     return () => {
       try {
+        document.removeEventListener('click', handlePopupClick);
         map.removeLayer(clusterGroup);
+        // remove standalone visited markers
+        directMarkers.forEach((m) => {
+          try {
+            map.removeLayer(m);
+          } catch (e) {}
+        });
       } catch (e) {}
     };
-  }, [map, locations, visits]);
+  }, [map, locations, visits, onCheckIn]);
 
   return null;
 }

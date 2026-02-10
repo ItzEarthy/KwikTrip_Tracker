@@ -66,6 +66,7 @@ export default function MapView() {
   const [selectedUserId, setSelectedUserId] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
   const [mapInstance, setMapInstance] = useState(null);
+  const userCenteredRef = useRef(false);
 
   // Search state
   const [searchQuery, setSearchQuery] = useState("");
@@ -109,6 +110,47 @@ export default function MapView() {
       .then((res) => res.json())
       .then(setVisits);
   }, [selectedUserId]);
+
+  const handleCheckIn = async (storeNumber) => {
+    const userId = localStorage.getItem("userId");
+    if (!userId) {
+      alert("Please log in to check in.");
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_BASE}/visits`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          storeNumber,
+          userId,
+          visitDate: new Date().toISOString(),
+        }),
+      });
+
+      if (response.ok) {
+        // Refresh visits data without page reload
+        const visitsRes = await fetch(`${API_BASE}/visits/${userId}`);
+        const visitsData = await visitsRes.json();
+        setVisits(visitsData);
+        
+        // Keep popup open to allow bulk adding; show success message instead
+        
+        // Optional: Show a toast notification
+        const notification = document.createElement('div');
+        notification.style.cssText = 'position:fixed;top:80px;left:50%;transform:translateX(-50%);background:#16a34a;color:white;padding:12px 24px;border-radius:8px;z-index:10000;font-weight:600;box-shadow:0 4px 12px rgba(0,0,0,0.15);';
+        notification.textContent = `✅ Store #${storeNumber} added!`;
+        document.body.appendChild(notification);
+        setTimeout(() => notification.remove(), 3000);
+      } else {
+        alert("Failed to check in. Please try again.");
+      }
+    } catch (error) {
+      console.error("Check-in error:", error);
+      alert("An error occurred. Please try again.");
+    }
+  };
 
   const isVisited = (storeNumber) =>
     visits.some((v) => v.storeNumber === storeNumber);
@@ -175,26 +217,7 @@ export default function MapView() {
     setSearchResults([]);
   };
 
-  function UserMarker({ position }) {
-    const map = useMap();
-    const didCenterRef = useRef(false);
-    useEffect(() => {
-      if (!position) return;
-      // center map on user only on first location fix
-      if (!didCenterRef.current) {
-        map.setView([position.lat, position.lng], 13);
-        didCenterRef.current = true;
-      }
-    }, [position, map]);
 
-    if (!position) return null;
-
-    return (
-      <Marker position={[position.lat, position.lng]} icon={userIcon}>
-        <Popup>You are here</Popup>
-      </Marker>
-    );
-  }
 
   function RecenterControl({ position }) {
     const map = useMap();
@@ -211,6 +234,26 @@ export default function MapView() {
           ⤢ Center
         </button>
       </div>
+    );
+  }
+
+  function UserMarkerWrapper({ position }) {
+    const map = useMap();
+    useEffect(() => {
+      if (!position) return;
+      // center map on user only on first location fix (persistent across renders)
+      if (!userCenteredRef.current) {
+        map.setView([position.lat, position.lng], 13);
+        userCenteredRef.current = true;
+      }
+    }, [position, map]);
+
+    if (!position) return null;
+
+    return (
+      <Marker position={[position.lat, position.lng]} icon={userIcon}>
+        <Popup>You are here</Popup>
+      </Marker>
     );
   }
 
@@ -290,9 +333,9 @@ export default function MapView() {
               return true;
             });
 
-            return <ClusteredMarkers locations={filteredLocations} visits={visits} />;
+            return <ClusteredMarkers locations={filteredLocations} visits={visits} onCheckIn={handleCheckIn} />;
           })()}
-          <UserMarker position={userLocation} />
+          <UserMarkerWrapper position={userLocation} />
         </MapContainer>
       </div>
     </div>
