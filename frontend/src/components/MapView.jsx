@@ -65,6 +65,12 @@ export default function MapView() {
   const [visits, setVisits] = useState([]);
   const [selectedUserId, setSelectedUserId] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
+  const [mapInstance, setMapInstance] = useState(null);
+
+  // Search state
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const [showResults, setShowResults] = useState(false);
 
   const handleLocationUpdate = useCallback((coords) => {
     setUserLocation(coords);
@@ -110,6 +116,65 @@ export default function MapView() {
   const isFriend =
     mode === "friend" && selectedUserId !== localStorage.getItem("userId");
 
+  // Search helpers
+  const computeMatches = (q) => {
+    if (!q || !q.trim()) return [];
+    const s = q.trim().toLowerCase();
+
+    // if numeric-only, prefer storeNumber or zip matches
+    const numeric = /^[0-9]+$/.test(s);
+
+    const matches = locations.filter((loc) => {
+      if (numeric) {
+        if (String(loc.storeNumber).startsWith(s)) return true;
+        if (String(loc.zip).startsWith(s)) return true;
+      }
+
+      if (loc.city && loc.city.toLowerCase().includes(s)) return true;
+      if (String(loc.storeNumber).toLowerCase().includes(s)) return true;
+      if (loc.zip && String(loc.zip).toLowerCase().includes(s)) return true;
+
+      return false;
+    });
+
+    return matches.slice(0, 10);
+  };
+
+  const onSearchChange = (e) => {
+    const q = e.target.value;
+    setSearchQuery(q);
+    if (!q || !q.trim()) {
+      setSearchResults([]);
+      setShowResults(false);
+      return;
+    }
+
+    const results = computeMatches(q);
+    setSearchResults(results);
+    setShowResults(results.length > 0);
+  };
+
+  const openLocationPopup = (loc) => {
+    if (!mapInstance || !loc) return;
+    const visited = isVisited(loc.storeNumber);
+    const html = `
+      <div style="font-family:inherit;max-width:300px">
+        <div><strong>${loc.name}</strong><br/>${loc.address}<br/>${loc.city}, ${loc.state} ${loc.zip}</div>
+        ${visited ? '<div style="color:#16a34a;font-weight:600;margin-top:6px">✅ Already Visited</div>' : ''}
+      </div>
+    `;
+
+    mapInstance.setView([loc.latitude, loc.longitude], 15);
+    L.popup({ maxWidth: 360, className: "kwik-search-popup" })
+      .setLatLng([loc.latitude, loc.longitude])
+      .setContent(html)
+      .openOn(mapInstance);
+
+    setShowResults(false);
+    setSearchQuery('');
+    setSearchResults([]);
+  };
+
   function UserMarker({ position }) {
     const map = useMap();
     const didCenterRef = useRef(false);
@@ -153,14 +218,50 @@ export default function MapView() {
     <div className="h-screen w-screen flex flex-col overflow-hidden">
       <Navbar />
 
-      <div className="flex-none z-10 p-2 space-y-2">
+      <div className="flex-none z-10 p-2 space-y-2 relative">
         {mode === "friend" && (
           <FriendsList
             selectedUserId={selectedUserId}
             onSelect={setSelectedUserId}
           />
         )}
-        <Filters locations={locations} visits={visits} onFilter={setFilter} />
+        <div className="flex items-center gap-2">
+          <div className="flex-1">
+            <input
+              placeholder="Search by city, ZIP, or store #"
+              value={searchQuery}
+              onChange={onSearchChange}
+              onFocus={() => setShowResults(searchResults.length > 0)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  if (searchResults.length > 0) openLocationPopup(searchResults[0]);
+                }
+                if (e.key === "Escape") {
+                  setShowResults(false);
+                }
+              }}
+              className="w-full px-3 py-2 rounded border"
+            />
+            {showResults && searchResults.length > 0 && (
+              <div className="absolute bg-white shadow rounded mt-1 w-full max-h-60 overflow-auto z-50">
+                {searchResults.map((r) => (
+                  <div
+                    key={r.storeNumber}
+                    onClick={() => openLocationPopup(r)}
+                    className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
+                  >
+                    <div className="font-medium">{r.name} — {r.city}, {r.state} {r.zip}</div>
+                    <div className="text-sm text-gray-600">Store #{r.storeNumber}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div style={{width:12}} />
+
+          <Filters locations={locations} visits={visits} onFilter={setFilter} />
+        </div>
       </div>
 
       <div className="flex-grow relative z-0">
@@ -168,6 +269,7 @@ export default function MapView() {
           center={[44.95, -92.95]}
           zoom={7}
           className="h-full w-full"
+          whenCreated={(map) => setMapInstance(map)}
         >
           <MapFixer />
           <LocationService onLocation={handleLocationUpdate} />

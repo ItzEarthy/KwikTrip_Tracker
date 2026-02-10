@@ -85,7 +85,7 @@ export default function ClusteredMarkers({ locations = [], visits = [] }) {
         const count = cluster.getChildCount();
         const size = count < 10 ? 40 : count < 100 ? 52 : 64;
         const html = `
-          <div class="kwik-cluster-icon" style="width:${size}px;height:${size}px;line-height:${size}px;font-size:${size/3.2}px">
+          <div class="kwik-cluster-icon" style="width:${size}px;height:${size}px;line-height:${size}px;font-size:${size/3.2}px;display:flex;align-items:center;justify-content:center;background:#dc2626;color:#fff;border-radius:50%;border:2px solid #fff;box-shadow:0 0 6px rgba(0,0,0,0.25)">
             ${count}
           </div>`;
 
