@@ -8,7 +8,7 @@ export default function Navbar({
   const navigate = useNavigate();
 
   return (
-    <header className="navbar app-header flex items-center justify-between px-4">
+    <header className="navbar app-header flex items-center justify-between">
       <button
         onClick={onBack || (() => navigate("/"))}
         className="text-white font-bold text-lg bg-transparent border-none"

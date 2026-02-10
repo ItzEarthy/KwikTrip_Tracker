@@ -14,7 +14,7 @@
 .app-header {
   background: var(--brand-primary);
   color: white;
-  padding: 0.75rem 1.2rem;
+  padding: 0;
   font-size: 1.2rem;
   font-weight: bold;
   display: flex;
@@ -31,7 +31,7 @@ body {
 .app-header {
   background: var(--brand-primary);
   color: #fff;
-  padding: 1rem 2rem;
+  padding: 0;
   font-size: 2rem;
   font-weight: bold;
   letter-spacing: 2px;
@@ -110,7 +110,7 @@ input, select {
 @media (max-width: 600px) {
   .app-header {
     font-size: 1.2rem;
-    padding: 0.7rem 1rem;
+    padding: 0;
   }
   .card {
     padding: 1rem;
