@@ -32,17 +32,17 @@ A personal web app for tracking visits to Kwik Trip gas station locations. Desig
 
 ## 🌟 Features
 
-- 🔐 **Authentication System**: Secure user registration & login with bcrypt password hashing
-- 🗺️ **Interactive Map**: Leaflet.js-powered map showing all Kwik Trip locations
-- 🎯 **Smart Filtering**: Filter locations by state, city, or visit status
-- 📊 **Analytics Dashboard**: Comprehensive visit statistics and progress tracking
-- 👥 **Social Features**: Friends dashboard to view and compare progress
-- 📝 **Visit Management**: Complete visit history with deletion capabilities
-- ⚙️ **Profile Controls**: Update nickname, username, and password
-- 🛠️ **Admin Portal**: Full user management (promote/demote, edit, delete)
-- 📱 **PWA Support**: Installable progressive web app for mobile devices
-- 🔔 **Version Checking**: Automatic GitHub version update notifications
-- 🐳 **Docker Native**: Fully containerized with multi-stage builds and optimized images
+- **Authentication System**: Secure user registration & login with bcrypt password hashing
+- **Interactive Map**: Leaflet.js-powered map showing all Kwik Trip locations
+- **Smart Filtering**: Filter locations by state, city, or visit status
+- **Analytics Dashboard**: Comprehensive visit statistics and progress tracking
+- **Social Features**: Friends dashboard to view and compare progress
+- **Visit Management**: Complete visit history with deletion capabilities
+- **Profile Controls**: Update nickname, username, and password
+- **Admin Portal**: Full user management (promote/demote, edit, delete)
+- **PWA Support**: Installable progressive web app for mobile devices
+- **Version Checking**: Automatic GitHub version update notifications
+- **Docker Native**: Fully containerized with multi-stage builds and optimized images
 
 ---
 
